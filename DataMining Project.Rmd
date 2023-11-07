@@ -37,35 +37,30 @@ CreditCard$Citizen %>% table() %>% barplot()
 *Data intgration(correlation analysis) first we will compare the nominal colomns with the class label.
 
 Data intgration(correlation analysis) between the Industry colomn (nominal data type) and the class label colomn approved. 
-We calculated the chi square = 98.323 and the df= 13 so we found that the crtical value for df 13 is = 34.528 ,the chi square is larger than the critical value we reject H0 so they are depandent and correlated .
+We calculated the chi square = 98.323 and the df= 13 so we found that the crtical value for df 13 is = 34.528 ,the chi square is larger than the critical value we reject H0 so they are depandent and correlated 
 ```{r}
 contingency_table <- table(CreditCard$Industry, CreditCard$Approved)
 chi_square_result <- chisq.test(contingency_table)
 print(chi_square_result)
 ``` 
 Data intgration(correlation analysis) between the Ethnicity colomn (nominal data type) and the class label colomn approved. 
-We calculated the chi square = 41.813 and the df= 4 so we found that the crtical value for df 4 is = 18.465 ,the chi square is larger than the critical value we reject H0 so they are depandent and correlated .
+We calculated the chi square = 41.813 and the df= 4 so we found that the crtical value for df 4 is = 18.465 ,the chi square is larger than the critical value we reject H0 so they are depandent and correlated 
 ```{r}
 contingency_table <- table(CreditCard$Ethnicity, CreditCard$Approved)
 chi_square_result <- chisq.test(contingency_table)
 print(chi_square_result)
 ```
 Data intgration(correlation analysis) between the Citizen colomn (nominal data type) and the class label colomn approved. 
-We calculated the chi square = 9.1916 and the df= 2 so we found that the crtical value for df 2 is = 13.815 ,the chi square is larger than the critical value we reject H0 so they are depandent and correlated .
+We calculated the chi square = 9.1916 and the df= 2 so we found that the crtical value for df 2 is = 13.815 ,the chi square is larger than the critical value we reject H0 so they are depandent and correlated 
 
 ```{r}
 contingency_table <- table(CreditCard$Citizen, CreditCard$Approved)
 chi_square_result <- chisq.test(contingency_table)
 print(chi_square_result)
 ```
-after we did chi-square all the columns was highly correlated to we didn't apply feature selection.
 
 
-
-
-
-
-*Data intgration(correlation analysis) Second we will compare the numeric colomns with the class label,we found that all numeric coulmns are positive corrleated except zip code coulmn so we need to deleate it.
+*Data intgration(correlation analysis) Second we will compare the numeric colomns with the class label.we found that all numeric coulmns are positive corrleated except zip code coulmn so we need to deleate it.
 ```{r}
 correlation<- cor(CreditCard$Age, CreditCard$Approved)
 print(correlation)
