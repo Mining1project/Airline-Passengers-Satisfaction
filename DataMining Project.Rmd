@@ -3,17 +3,11 @@ title: "R Notebook"
 output: html_notebook
 ---
 This is our dataset before pre-processing.
-
-
 ```{r}
-summary(CreditCard)
+library(readxl)
+CreditCard <- read_excel("C:/Users/Noni/Desktop/Datamining project/Credit Card Approvals/Dataset/CreditCard.xlsx")
+print(CreditCard)
 ```
-
-
-
-
-
-
 Data cleaning: our data set already cleaned, there are no incomplete all colomns are filled , inconsistent each colomn have the same type  or intentional data. it has only noisy data (outliers) and we removed them.
 
 
@@ -174,137 +168,346 @@ This is our Dataset after pre-processing.
 ```{r}
 print(CreditCard)
 ```
-
 ```{r}
-library(caret)
+# Load required libraries
+library(readxl)
+library(dplyr)
 library(rpart)
+library(rpart.plot)
 
-k <- 3
-folds <- createFolds(1:nrow(CreditCard), k = k, list = TRUE, returnTrain = FALSE)
+# Read the dataset
+CreditCard <- read_excel("C:/Users/Noni/Desktop/Datamining project/Credit Card Approvals/Dataset/CreditCard.xlsx")
 
-# Initialize a vector to store performance metrics (e.g., accuracy) for each fold
-accuracy_values <- numeric(k)
+# Specify the class attribute
+class_attribute <- "Approved"
 
-for (i in 1:k) {
-  # Get the training and testing data indices for fold i
-  test_indices <- unlist(folds[i])
-  train_indices <- setdiff(1:nrow(CreditCard), test_indices)
-  
-  training_data <- CreditCard[train_indices, ]
-  testing_data <- CreditCard[test_indices, ]
-  
-  # Train a decision tree model using rpart for classification
-  model <- rpart(Approved ~ ., data = training_data)
-  
-  # Make predictions on the testing data
-  predictions <- as.factor(predict(model, newdata = testing_data))
-  
-  # Compute accuracy for this fold
-  correct_predictions <- sum(predictions == testing_data$Approved)
-  accuracy <- correct_predictions / nrow(testing_data)
-  accuracy_values[i] <- accuracy
-  
-  # Optionally, you can print the accuracy for each fold
-  cat("Fold", i, "Accuracy:", accuracy, "\n")
+# List of character attributes to encode
+char_attributes_to_encode <- c("Industry", "Ethnicity", "Citizen")
+
+# Label Encoding
+for (char_attribute in char_attributes_to_encode) {
+  CreditCard[[char_attribute]] <- as.numeric(factor(CreditCard[[char_attribute]]))
 }
 
-# After the loop
-# Compute summary statistics
-mean_accuracy <- mean(accuracy_values)
-std_accuracy <- sd(accuracy_values)
-cat("Mean Accuracy:", mean_accuracy, "\n")
-cat("Standard Deviation of Accuracy:", std_accuracy, "\n")
+# Split the data into training (70%) and testing (30%)
+set.seed(123)  # Set seed for reproducibility
+sample_index <- sample(1:nrow(CreditCard), 0.7 * nrow(CreditCard))
+train_data <- CreditCard[sample_index, ]
+test_data <- CreditCard[-sample_index, ]
+
+# Create a formula for the decision tree
+formula <- as.formula(paste(class_attribute, " ~ ."))
+
+# Build the decision tree using information gain on the training data
+tree <- rpart(formula, data = train_data, method = "class", parms = list(split = "information"))
+
+# Visualize the decision tree
+rpart.plot(tree)
 
 ```
 
 
 
+
 ```{r}
-library(caret)
-library(rpart)
+# Load required libraries
+library(readxl)
+library(C50)
 
-# Load your dataset (e.g., 'CreditCard')
-# Replace 'CreditCard' with your actual dataset
+# Read the dataset
+CreditCard <- read_excel("C:/Users/Noni/Desktop/Datamining project/Credit Card Approvals/Dataset/CreditCard.xlsx")
 
-# Assuming 'Approved' is the target variable, and you want to calculate information gain for features
-target_variable <- "Approved"
+# Specify the class attribute
+class_attribute <- "Approved"
 
-# Initialize a data frame to store information gain for each feature
-information_gain <- data.frame(Feature = character(0), Gain = numeric(0))
+# List of character attributes to encode
+char_attributes_to_encode <- c("Industry", "Ethnicity", "Citizen")
 
-# Loop through each feature (excluding the target variable)
-for (feature in setdiff(names(CreditCard), target_variable)) {
-  # Create a formula for the decision tree
-  formula <- as.formula(paste(target_variable, "~", feature))
-  
-  # Train a decision tree model using rpart
-  model <- rpart(formula, data = CreditCard, method = "class")
-  
-  # Calculate information gain (using Gini impurity) for the feature
-  gain <- 1 - model$frame[1, "dev" ]
-  
-  # Store the information gain in the data frame
-  information_gain <- rbind(information_gain, data.frame(Feature = feature, Gain = gain))
+# Label Encoding
+for (char_attribute in char_attributes_to_encode) {
+  CreditCard[[char_attribute]] <- as.numeric(factor(CreditCard[[char_attribute]]))
 }
 
-# Print or view the information gain for each feature
-print(information_gain)
+# Split the data into training (70%) and testing (30%)
+set.seed(123)  # Set seed for reproducibility
+sample_index <- sample(1:nrow(CreditCard), 0.7 * nrow(CreditCard))
+train_data <- CreditCard[sample_index, ]
+test_data <- CreditCard[-sample_index, ]
+
+# Build the decision tree using C5.0 with gain ratio
+# Assuming "Approved" is a binary variable (0 or 1)
+train_data$Approved <- as.factor(train_data$Approved)
+tree <- C5.0(train_data[, -which(names(train_data) == class_attribute)], train_data[[class_attribute]], control = C5.0Control(earlyStopping = FALSE))
+
+# Print the decision tree
+plot(tree)
+
+```
+
+
+
+```{r}
+# Load required libraries
+library(readxl)
+library(dplyr)
+library(rpart)
+library(rpart.plot)
+
+# Read the dataset
+CreditCard <- read_excel("C:/Users/Noni/Desktop/Datamining project/Credit Card Approvals/Dataset/CreditCard.xlsx")
+
+# Specify the class attribute
+class_attribute <- "Approved"
+
+# List of character attributes to encode
+char_attributes_to_encode <- c("Industry", "Ethnicity", "Citizen")
+
+# Label Encoding
+for (char_attribute in char_attributes_to_encode) {
+  CreditCard[[char_attribute]] <- as.numeric(factor(CreditCard[[char_attribute]]))
+}
+
+# Split the data into training (70%) and testing (30%)
+set.seed(123)  # Set seed for reproducibility
+sample_index <- sample(1:nrow(CreditCard), 0.7 * nrow(CreditCard))
+train_data <- CreditCard[sample_index, ]
+test_data <- CreditCard[-sample_index, ]
+
+# Create a formula for the decision tree
+formula <- as.formula(paste(class_attribute, " ~ ."))
+
+# Build the decision tree using Gini index on the training data
+tree <- rpart(formula, data = train_data, method = "class", control = rpart.control(cp = 0.005))
+
+# Visualize the decision tree
+rpart.plot(tree)
+
+
+```
+
+
+```{r}
+# Load required libraries
+library(readxl)
+library(dplyr)
+library(rpart)
+library(rpart.plot)
+
+# Read the dataset
+CreditCard <- read_excel("C:/Users/Noni/Desktop/Datamining project/Credit Card Approvals/Dataset/CreditCard.xlsx")
+
+# Specify the class attribute
+class_attribute <- "Approved"
+
+# List of character attributes to encode
+char_attributes_to_encode <- c("Industry", "Ethnicity", "Citizen")
+
+# Label Encoding
+for (char_attribute in char_attributes_to_encode) {
+  CreditCard[[char_attribute]] <- as.numeric(factor(CreditCard[[char_attribute]]))
+}
+
+# Split the data into training (80%) and testing (20%)
+set.seed(123)  # Set seed for reproducibility
+sample_index <- sample(1:nrow(CreditCard), 0.8 * nrow(CreditCard))  # Use 0.8 for 80% training
+train_data <- CreditCard[sample_index, ]
+test_data <- CreditCard[-sample_index, ]
+
+
+# Create a formula for the decision tree
+formula <- as.formula(paste(class_attribute, " ~ ."))
+
+# Build the decision tree using information gain on the training data
+tree <- rpart(formula, data = train_data, method = "class", parms = list(split = "information"))
+
+# Visualize the decision tree
+rpart.plot(tree)
 
 ```
 
 ```{r}
-library(caret)
+# Load required libraries
+library(readxl)
+library(C50)
+
+# Read the dataset
+CreditCard <- read_excel("C:/Users/Noni/Desktop/Datamining project/Credit Card Approvals/Dataset/CreditCard.xlsx")
+
+# Specify the class attribute
+class_attribute <- "Approved"
+
+# List of character attributes to encode
+char_attributes_to_encode <- c("Industry", "Ethnicity", "Citizen")
+
+# Label Encoding
+for (char_attribute in char_attributes_to_encode) {
+  CreditCard[[char_attribute]] <- as.numeric(factor(CreditCard[[char_attribute]]))
+}
+
+# Split the data into training (80%) and testing (20%)
+set.seed(123)  # Set seed for reproducibility
+sample_index <- sample(1:nrow(CreditCard), 0.8 * nrow(CreditCard))  # Use 0.8 for 80% training
+train_data <- CreditCard[sample_index, ]
+test_data <- CreditCard[-sample_index, ]
+
+# Build the decision tree using C5.0 with gain ratio
+# Assuming "Approved" is a binary variable (0 or 1)
+train_data$Approved <- as.factor(train_data$Approved)
+tree <- C5.0(train_data[, -which(names(train_data) == class_attribute)], train_data[[class_attribute]], control = C5.0Control(earlyStopping = FALSE))
+
+# Print the decision tree
+plot(tree)
+
+```
+
+
+```{r}
+# Load required libraries
+library(readxl)
+library(dplyr)
 library(rpart)
+library(rpart.plot)
 
-# Load your dataset (e.g., 'CreditCard')
-# Replace 'CreditCard' with your actual dataset
+# Read the dataset
+CreditCard <- read_excel("C:/Users/Noni/Desktop/Datamining project/Credit Card Approvals/Dataset/CreditCard.xlsx")
 
-# Assuming 'Approved' is the target variable
-target_variable <- "Approved"
+# Specify the class attribute
+class_attribute <- "Approved"
+
+# List of character attributes to encode
+char_attributes_to_encode <- c("Industry", "Ethnicity", "Citizen")
+
+# Label Encoding
+for (char_attribute in char_attributes_to_encode) {
+  CreditCard[[char_attribute]] <- as.numeric(factor(CreditCard[[char_attribute]]))
+}
+
+# Split the data into training (80%) and testing (20%)
+set.seed(123)  # Set seed for reproducibility
+sample_index <- sample(1:nrow(CreditCard), 0.8 * nrow(CreditCard))  # Use 0.8 for 80% training
+train_data <- CreditCard[sample_index, ]
+test_data <- CreditCard[-sample_index, ]
 
 # Create a formula for the decision tree
-formula <- as.formula(paste(target_variable, "~ ."))
+formula <- as.formula(paste(class_attribute, " ~ ."))
 
-# Train a decision tree model using rpart
-model <- rpart(formula, data = CreditCard, method = "class")
+# Build the decision tree using Gini index on the training data
+tree <- rpart(formula, data = train_data, method = "class", control = rpart.control(cp = 0.005))
 
-# Use the summary function to get information about the tree, including the Gini index
-tree_summary <- summary(model)
-
-# Extract the Gini index
-gini_index <- tree_summary$variable.importance
-
-# Print or view the Gini index for each feature
-print(gini_index)
+# Visualize the decision tree
+rpart.plot(tree)
 
 ```
 
 ```{r}
-library(caret)
+# Load required libraries
+library(readxl)
+library(dplyr)
 library(rpart)
+library(rpart.plot)
 
+# Read the dataset
+CreditCard <- read_excel("C:/Users/Noni/Desktop/Datamining project/Credit Card Approvals/Dataset/CreditCard.xlsx")
 
-# Assuming 'Approved' is the target variable
-target_variable <- "Approved"
+# Specify the class attribute
+class_attribute <- "Approved"
+
+# List of character attributes to encode
+char_attributes_to_encode <- c("Industry", "Ethnicity", "Citizen")
+
+# Label Encoding
+for (char_attribute in char_attributes_to_encode) {
+  CreditCard[[char_attribute]] <- as.numeric(factor(CreditCard[[char_attribute]]))
+}
+
+# Split the data into training (90%) and testing (10%)
+set.seed(123)  # Set seed for reproducibility
+sample_index <- sample(1:nrow(CreditCard), 0.9 * nrow(CreditCard))  # Use 0.9 for 90% training
+train_data <- CreditCard[sample_index, ]
+test_data <- CreditCard[-sample_index, ]
 
 # Create a formula for the decision tree
-formula <- as.formula(paste(target_variable, "~ ."))
+formula <- as.formula(paste(class_attribute, " ~ ."))
 
-# Train a decision tree model using rpart
-model <- rpart(formula, data = CreditCard, method = "class")
+# Build the decision tree using information gain on the training data
+tree <- rpart(formula, data = train_data, method = "class", parms = list(split = "information"))
 
-# Use the information gain and intrinsic information to calculate the gain ratio
-summary_info <- summary(model)
-info_gain <- summary_info$variable.importance
-
-# Calculate intrinsic information (splitting entropy)
-intrinsic_info <- -sum(info_gain * log2(info_gain))
-
-# Calculate the gain ratio for each feature
-gain_ratio <- info_gain / intrinsic_info
-
-# Print or view the gain ratio for each feature
-print(gain_ratio)
+# Visualize the decision tree
+rpart.plot(tree)
 
 ```
+
+```{r}
+# Load required libraries
+library(readxl)
+library(C50)
+
+# Read the dataset
+CreditCard <- read_excel("C:/Users/Noni/Desktop/Datamining project/Credit Card Approvals/Dataset/CreditCard.xlsx")
+
+# Specify the class attribute
+class_attribute <- "Approved"
+
+# List of character attributes to encode
+char_attributes_to_encode <- c("Industry", "Ethnicity", "Citizen")
+
+# Label Encoding
+for (char_attribute in char_attributes_to_encode) {
+  CreditCard[[char_attribute]] <- as.numeric(factor(CreditCard[[char_attribute]]))
+}
+
+# Split the data into training (90%) and testing (10%)
+set.seed(123)  # Set seed for reproducibility
+sample_index <- sample(1:nrow(CreditCard), 0.9 * nrow(CreditCard))  # Use 0.9 for 90% training
+train_data <- CreditCard[sample_index, ]
+test_data <- CreditCard[-sample_index, ]
+
+# Build the decision tree using C5.0 with gain ratio
+# Assuming "Approved" is a binary variable (0 or 1)
+train_data$Approved <- as.factor(train_data$Approved)
+tree <- C5.0(train_data[, -which(names(train_data) == class_attribute)], train_data[[class_attribute]], control = C5.0Control(earlyStopping = FALSE))
+
+# Print the decision tree
+plot(tree)
+
+```
+
+```{r}
+# Load required libraries
+library(readxl)
+library(dplyr)
+library(rpart)
+library(rpart.plot)
+
+# Read the dataset
+CreditCard <- read_excel("C:/Users/Noni/Desktop/Datamining project/Credit Card Approvals/Dataset/CreditCard.xlsx")
+
+# Specify the class attribute
+class_attribute <- "Approved"
+
+# List of character attributes to encode
+char_attributes_to_encode <- c("Industry", "Ethnicity", "Citizen")
+
+# Label Encoding
+for (char_attribute in char_attributes_to_encode) {
+  CreditCard[[char_attribute]] <- as.numeric(factor(CreditCard[[char_attribute]]))
+}
+
+# Split the data into training (90%) and testing (10%)
+set.seed(123)  # Set seed for reproducibility
+sample_index <- sample(1:nrow(CreditCard), 0.9 * nrow(CreditCard))  # Use 0.9 for 90% training
+train_data <- CreditCard[sample_index, ]
+test_data <- CreditCard[-sample_index, ]
+
+# Create a formula for the decision tree
+formula <- as.formula(paste(class_attribute, " ~ ."))
+
+# Build the decision tree using Gini index on the training data
+tree <- rpart(formula, data = train_data, method = "class", control = rpart.control(cp = 0.005))
+
+# Visualize the decision tree
+rpart.plot(tree)
+
+```
+
 
