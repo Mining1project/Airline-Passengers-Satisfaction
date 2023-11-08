@@ -3,11 +3,17 @@ title: "R Notebook"
 output: html_notebook
 ---
 This is our dataset before pre-processing.
+
+
 ```{r}
-library(readxl)
-CreditCard <- read_excel("C:/Users/Noni/Desktop/Datamining project/Credit Card Approvals/Dataset/CreditCard.xlsx")
-print(CreditCard)
+summary(CreditCard)
 ```
+
+
+
+
+
+
 Data cleaning: our data set already cleaned, there are no incomplete all colomns are filled , inconsistent each colomn have the same type  or intentional data. it has only noisy data (outliers) and we removed them.
 
 
@@ -37,30 +43,35 @@ CreditCard$Citizen %>% table() %>% barplot()
 *Data intgration(correlation analysis) first we will compare the nominal colomns with the class label.
 
 Data intgration(correlation analysis) between the Industry colomn (nominal data type) and the class label colomn approved. 
-We calculated the chi square = 98.323 and the df= 13 so we found that the crtical value for df 13 is = 34.528 ,the chi square is larger than the critical value we reject H0 so they are depandent and correlated 
+We calculated the chi square = 98.323 and the df= 13 so we found that the crtical value for df 13 is = 34.528 ,the chi square is larger than the critical value we reject H0 so they are depandent and correlated .
 ```{r}
 contingency_table <- table(CreditCard$Industry, CreditCard$Approved)
 chi_square_result <- chisq.test(contingency_table)
 print(chi_square_result)
 ``` 
 Data intgration(correlation analysis) between the Ethnicity colomn (nominal data type) and the class label colomn approved. 
-We calculated the chi square = 41.813 and the df= 4 so we found that the crtical value for df 4 is = 18.465 ,the chi square is larger than the critical value we reject H0 so they are depandent and correlated 
+We calculated the chi square = 41.813 and the df= 4 so we found that the crtical value for df 4 is = 18.465 ,the chi square is larger than the critical value we reject H0 so they are depandent and correlated .
 ```{r}
 contingency_table <- table(CreditCard$Ethnicity, CreditCard$Approved)
 chi_square_result <- chisq.test(contingency_table)
 print(chi_square_result)
 ```
 Data intgration(correlation analysis) between the Citizen colomn (nominal data type) and the class label colomn approved. 
-We calculated the chi square = 9.1916 and the df= 2 so we found that the crtical value for df 2 is = 13.815 ,the chi square is larger than the critical value we reject H0 so they are depandent and correlated 
+We calculated the chi square = 9.1916 and the df= 2 so we found that the crtical value for df 2 is = 13.815 ,the chi square is larger than the critical value we reject H0 so they are depandent and correlated .
 
 ```{r}
 contingency_table <- table(CreditCard$Citizen, CreditCard$Approved)
 chi_square_result <- chisq.test(contingency_table)
 print(chi_square_result)
 ```
+after we did chi-square all the columns was highly correlated to we didn't apply feature selection.
 
 
-*Data intgration(correlation analysis) Second we will compare the numeric colomns with the class label.we found that all numeric coulmns are positive corrleated except zip code coulmn so we need to deleate it.
+
+
+
+
+*Data intgration(correlation analysis) Second we will compare the numeric colomns with the class label,we found that all numeric coulmns are positive corrleated except zip code coulmn so we need to deleate it.
 ```{r}
 correlation<- cor(CreditCard$Age, CreditCard$Approved)
 print(correlation)
@@ -162,5 +173,138 @@ print(CreditCard)
 This is our Dataset after pre-processing.
 ```{r}
 print(CreditCard)
+```
+
+```{r}
+library(caret)
+library(rpart)
+
+k <- 3
+folds <- createFolds(1:nrow(CreditCard), k = k, list = TRUE, returnTrain = FALSE)
+
+# Initialize a vector to store performance metrics (e.g., accuracy) for each fold
+accuracy_values <- numeric(k)
+
+for (i in 1:k) {
+  # Get the training and testing data indices for fold i
+  test_indices <- unlist(folds[i])
+  train_indices <- setdiff(1:nrow(CreditCard), test_indices)
+  
+  training_data <- CreditCard[train_indices, ]
+  testing_data <- CreditCard[test_indices, ]
+  
+  # Train a decision tree model using rpart for classification
+  model <- rpart(Approved ~ ., data = training_data)
+  
+  # Make predictions on the testing data
+  predictions <- as.factor(predict(model, newdata = testing_data))
+  
+  # Compute accuracy for this fold
+  correct_predictions <- sum(predictions == testing_data$Approved)
+  accuracy <- correct_predictions / nrow(testing_data)
+  accuracy_values[i] <- accuracy
+  
+  # Optionally, you can print the accuracy for each fold
+  cat("Fold", i, "Accuracy:", accuracy, "\n")
+}
+
+# After the loop
+# Compute summary statistics
+mean_accuracy <- mean(accuracy_values)
+std_accuracy <- sd(accuracy_values)
+cat("Mean Accuracy:", mean_accuracy, "\n")
+cat("Standard Deviation of Accuracy:", std_accuracy, "\n")
+
+```
+
+
+
+```{r}
+library(caret)
+library(rpart)
+
+# Load your dataset (e.g., 'CreditCard')
+# Replace 'CreditCard' with your actual dataset
+
+# Assuming 'Approved' is the target variable, and you want to calculate information gain for features
+target_variable <- "Approved"
+
+# Initialize a data frame to store information gain for each feature
+information_gain <- data.frame(Feature = character(0), Gain = numeric(0))
+
+# Loop through each feature (excluding the target variable)
+for (feature in setdiff(names(CreditCard), target_variable)) {
+  # Create a formula for the decision tree
+  formula <- as.formula(paste(target_variable, "~", feature))
+  
+  # Train a decision tree model using rpart
+  model <- rpart(formula, data = CreditCard, method = "class")
+  
+  # Calculate information gain (using Gini impurity) for the feature
+  gain <- 1 - model$frame[1, "dev" ]
+  
+  # Store the information gain in the data frame
+  information_gain <- rbind(information_gain, data.frame(Feature = feature, Gain = gain))
+}
+
+# Print or view the information gain for each feature
+print(information_gain)
+
+```
+
+```{r}
+library(caret)
+library(rpart)
+
+# Load your dataset (e.g., 'CreditCard')
+# Replace 'CreditCard' with your actual dataset
+
+# Assuming 'Approved' is the target variable
+target_variable <- "Approved"
+
+# Create a formula for the decision tree
+formula <- as.formula(paste(target_variable, "~ ."))
+
+# Train a decision tree model using rpart
+model <- rpart(formula, data = CreditCard, method = "class")
+
+# Use the summary function to get information about the tree, including the Gini index
+tree_summary <- summary(model)
+
+# Extract the Gini index
+gini_index <- tree_summary$variable.importance
+
+# Print or view the Gini index for each feature
+print(gini_index)
+
+```
+
+```{r}
+library(caret)
+library(rpart)
+
+
+# Assuming 'Approved' is the target variable
+target_variable <- "Approved"
+
+# Create a formula for the decision tree
+formula <- as.formula(paste(target_variable, "~ ."))
+
+# Train a decision tree model using rpart
+model <- rpart(formula, data = CreditCard, method = "class")
+
+# Use the information gain and intrinsic information to calculate the gain ratio
+summary_info <- summary(model)
+info_gain <- summary_info$variable.importance
+
+# Calculate intrinsic information (splitting entropy)
+intrinsic_info <- -sum(info_gain * log2(info_gain))
+
+# Calculate the gain ratio for each feature
+gain_ratio <- info_gain / intrinsic_info
+
+# Print or view the gain ratio for each feature
+print(gain_ratio)
+
 ```
 
