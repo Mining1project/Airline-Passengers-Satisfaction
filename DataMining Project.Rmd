@@ -725,38 +725,402 @@ cat("Specificity:", specificity, "\n")
 
 
 
+
+
+
+
+
+
+
+
+
 ```{r}
- #average silhouette for each clusters 
-library(cluster)
-avg_sil <- silhouette(kmeans.result$cluster,dist(CreditCard)) #a dissimilarity object inheriting from class dist or coercible to one. If not specified, dmatrix must be.
-fviz_silhouette(avg_sil)#k-means clustering with estimating k and initializations
+# Load required libraries
+library(dplyr)
+library(factoextra)
+
+
+# Encode categorical variables (Industry, Ethnicity, Citizen)
+CreditCard_encoded <- CreditCard %>%
+  mutate(
+    Industry = as.numeric(factor(Industry)),
+    Ethnicity = as.numeric(factor(Ethnicity)),
+    Citizen = as.numeric(factor(Citizen))
+  )
+
+# Extract the features for clustering (excluding 'Approved' column)
+features <- CreditCard_encoded %>%
+  select(-Approved)
+
+# Scale the features
+scaled_data <- scale(features)
+
+# Perform k-means clustering with k=2
+kmeans_result <- kmeans(scaled_data, centers = 2, nstart = 25)
+
+# Visualize the clusters
+fviz_cluster(kmeans_result, data = scaled_data, geom = "point",
+             stand = FALSE, # Don't standardize the variables
+             main = "K-Means Clustering (k=2)")
+
 
 ```
 
 
 ```{r}
-# Specify the numeric features for clustering
-library(fpc)
-features <- CreditCard[, c("Age", "YearsEmployed", "Debt", "CreditScore", "Income")]
+# Load required libraries
+library(cluster)
+library(factoextra)
+library(dplyr)
 
-# Perform k-means clustering for a range of K values
-k_values <- 2:4  # Define the range of K values to test
-silhouette_scores <- numeric(length(k_values))
 
-for (i in 1:length(k_values)) {
-  k <- k_values[i]
-  kmeans_result <- kmeans(features, centers = k, nstart = 25)  # You can adjust nstart as needed
-  
-  # Calculate Silhouette score
-  silhouette_scores[i] <- silhouette(kmeans_result$cluster, dist(features))
+# Encoding and scaling
+CreditCard_encoded <- CreditCard %>%
+  mutate(
+    Industry = as.numeric(factor(Industry)),
+    Ethnicity = as.numeric(factor(Ethnicity)),
+    Citizen = as.numeric(factor(Citizen))
+  )
+
+# Remove the class label 'Approved'
+CreditCard_scaled <- CreditCard_encoded %>%
+  select(-Approved) %>%
+  scale()
+
+# Specify the number of clusters (k)
+k <- 2
+
+# Perform k-means clustering with k clusters
+kmeans_result <- kmeans(CreditCard_scaled, centers = k, nstart = 25)
+
+# Silhouette Score
+silhouette_score <- silhouette(kmeans_result$cluster, dist(CreditCard_scaled))
+cat("Silhouette Score for k =", k, ":", mean(silhouette_score[, "sil_width"]), "\n")
+
+# Total Within-Cluster Sum of Squares (WSS)
+wss <- kmeans_result$tot.withinss
+cat("Total Within-Cluster Sum of Squares (WSS) for k =", k, ":", wss, "\n")
+
+
+```
+```{r}
+# Load required libraries
+library(cluster)
+library(factoextra)
+library(dplyr)
+
+# Assume 'CreditCard' is your dataset
+
+# Encoding and scaling
+CreditCard_encoded <- CreditCard %>%
+  mutate(
+    Industry = as.numeric(factor(Industry)),
+    Ethnicity = as.numeric(factor(Ethnicity)),
+    Citizen = as.numeric(factor(Citizen))
+  )
+
+# Remove the class label 'Approved'
+CreditCard_scaled <- CreditCard_encoded %>%
+  select(-Approved) %>%
+  scale()
+
+# Specify the number of clusters (k)
+k <- 2
+
+# Perform k-means clustering with k clusters
+kmeans_result <- kmeans(CreditCard_scaled, centers = k, nstart = 25)
+
+# Calculate silhouette information
+sil_info <- silhouette(kmeans_result$cluster, dist(CreditCard_scaled))
+
+# Calculate average silhouette width for each cluster
+avg_sil_width <- cluster.stats(dist(CreditCard_scaled), kmeans_result$cluster)$avg.silwidth
+
+# Visualize silhouette plot
+fviz_silhouette(sil_info)
+
+# Print average silhouette width for each cluster
+cat("Average Silhouette Width for each cluster:\n")
+cat(paste("Cluster", 1:k, ": ", avg_sil_width, "\n"))
+
+
+```
+
+
+
+
+
+
+```{r}
+# Load required libraries
+library(dplyr)
+library(factoextra)
+
+
+# Encode categorical variables (Industry, Ethnicity, Citizen)
+CreditCard_encoded <- CreditCard %>%
+  mutate(
+    Industry = as.numeric(factor(Industry)),
+    Ethnicity = as.numeric(factor(Ethnicity)),
+    Citizen = as.numeric(factor(Citizen))
+  )
+
+# Extract the features for clustering (excluding 'Approved' column)
+features <- CreditCard_encoded %>%
+  select(-Approved)
+
+# Scale the features
+scaled_data <- scale(features)
+
+# Perform k-means clustering with k=3
+kmeans_result <- kmeans(scaled_data, centers = 3, nstart = 25)
+
+# Visualize the clusters
+fviz_cluster(kmeans_result, data = scaled_data, geom = "point",
+             stand = FALSE, # Don't standardize the variables
+             main = "K-Means Clustering (k=3)")
+
+```
+
+```{r}
+# Load required libraries
+library(cluster)
+library(factoextra)
+library(dplyr)
+
+# Encoding and scaling
+CreditCard_encoded <- CreditCard %>%
+  mutate(
+    Industry = as.numeric(factor(Industry)),
+    Ethnicity = as.numeric(factor(Ethnicity)),
+    Citizen = as.numeric(factor(Citizen))
+  )
+
+# Remove the class label 'Approved'
+CreditCard_scaled <- CreditCard_encoded %>%
+  select(-Approved) %>%
+  scale()
+
+# Specify the number of clusters (k)
+k <- 3
+
+# Perform k-means clustering with k clusters
+kmeans_result <- kmeans(CreditCard_scaled, centers = k, nstart = 25)
+
+# Silhouette Score
+silhouette_score <- silhouette(kmeans_result$cluster, dist(CreditCard_scaled))
+cat("Silhouette Score for k =", k, ":", mean(silhouette_score[, "sil_width"]), "\n")
+
+# Total Within-Cluster Sum of Squares (WSS)
+wss <- kmeans_result$tot.withinss
+cat("Total Within-Cluster Sum of Squares (WSS) for k =", k, ":", wss, "\n")
+
+
+
+```
+```{r}
+# Load required libraries
+library(cluster)
+library(factoextra)
+library(dplyr)
+
+
+# Encoding and scaling
+CreditCard_encoded <- CreditCard %>%
+  mutate(
+    Industry = as.numeric(factor(Industry)),
+    Ethnicity = as.numeric(factor(Ethnicity)),
+    Citizen = as.numeric(factor(Citizen))
+  )
+
+# Remove the class label 'Approved'
+CreditCard_scaled <- CreditCard_encoded %>%
+  select(-Approved) %>%
+  scale()
+
+# Specify the number of clusters (k)
+k <- 3
+
+# Perform k-means clustering with k clusters
+kmeans_result <- kmeans(CreditCard_scaled, centers = k, nstart = 25)
+
+# Calculate silhouette information
+sil_info <- silhouette(kmeans_result$cluster, dist(CreditCard_scaled))
+
+# Calculate average silhouette width for each cluster
+avg_sil_width <- cluster.stats(dist(CreditCard_scaled), kmeans_result$cluster)$avg.silwidth
+
+# Visualize silhouette plot
+fviz_silhouette(sil_info)
+
+# Print average silhouette width for each cluster
+cat("Average Silhouette Width for each cluster:\n")
+cat(paste("Cluster", 1:k, ": ", avg_sil_width, "\n"))
+
+
+```
+
+
+
+```{r}
+# Load required libraries
+library(dplyr)
+library(factoextra)
+
+
+# Encode categorical variables (Industry, Ethnicity, Citizen)
+CreditCard_encoded <- CreditCard %>%
+  mutate(
+    Industry = as.numeric(factor(Industry)),
+    Ethnicity = as.numeric(factor(Ethnicity)),
+    Citizen = as.numeric(factor(Citizen))
+  )
+
+# Extract the features for clustering (excluding 'Approved' column)
+features <- CreditCard_encoded %>%
+  select(-Approved)
+
+# Scale the features
+scaled_data <- scale(features)
+
+# Perform k-means clustering with k=2
+kmeans_result <- kmeans(scaled_data, centers = 4, nstart = 25)
+
+# Visualize the clusters
+fviz_cluster(kmeans_result, data = scaled_data, geom = "point",
+             stand = FALSE, # Don't standardize the variables
+             main = "K-Means Clustering (k=4)")
+
+```
+
+```{r}
+# Load required libraries
+library(cluster)
+library(factoextra)
+library(dplyr)
+
+
+# Encoding and scaling
+CreditCard_encoded <- CreditCard %>%
+  mutate(
+    Industry = as.numeric(factor(Industry)),
+    Ethnicity = as.numeric(factor(Ethnicity)),
+    Citizen = as.numeric(factor(Citizen))
+  )
+
+# Remove the class label 'Approved'
+CreditCard_scaled <- CreditCard_encoded %>%
+  select(-Approved) %>%
+  scale()
+
+# Specify the number of clusters (k)
+k <- 4
+
+# Perform k-means clustering with k clusters
+kmeans_result <- kmeans(CreditCard_scaled, centers = k, nstart = 25)
+
+# Silhouette Score
+silhouette_score <- silhouette(kmeans_result$cluster, dist(CreditCard_scaled))
+cat("Silhouette Score for k =", k, ":", mean(silhouette_score[, "sil_width"]), "\n")
+
+
+# Total Within-Cluster Sum of Squares (WSS)
+wss <- kmeans_result$tot.withinss
+cat("Total Within-Cluster Sum of Squares (WSS) for k =", k, ":", wss, "\n")
+
+
+```
+```{r}
+# Load required libraries
+library(cluster)
+library(factoextra)
+library(dplyr)
+
+
+# Encoding and scaling
+CreditCard_encoded <- CreditCard %>%
+  mutate(
+    Industry = as.numeric(factor(Industry)),
+    Ethnicity = as.numeric(factor(Ethnicity)),
+    Citizen = as.numeric(factor(Citizen))
+  )
+
+# Remove the class label 'Approved'
+CreditCard_scaled <- CreditCard_encoded %>%
+  select(-Approved) %>%
+  scale()
+
+# Specify the number of clusters (k)
+k <- 4
+
+# Perform k-means clustering with k clusters
+kmeans_result <- kmeans(CreditCard_scaled, centers = k, nstart = 25)
+
+
+# Calculate average silhouette width for each cluster
+avg_sil_width <- cluster.stats(dist(CreditCard_scaled), kmeans_result$cluster)$avg.silwidth
+
+# Visualize silhouette plot
+fviz_silhouette(sil_info)
+
+# Print average silhouette width for each cluster
+cat("Average Silhouette Width for each cluster:\n")
+cat(paste("Cluster", 1:k, ": ", avg_sil_width, "\n"))
+
+
+```
+
+
+
+
+
+```{r}
+# Load required libraries
+library(cluster)
+library(factoextra)
+library(dplyr)
+
+# Encoding and scaling
+CreditCard_encoded <- CreditCard %>%
+  mutate(
+    Industry = as.numeric(factor(Industry)),
+    Ethnicity = as.numeric(factor(Ethnicity)),
+    Citizen = as.numeric(factor(Citizen))
+  )
+
+# Remove the class label 'Approved'
+CreditCard_scaled <- CreditCard_encoded %>%
+  select(-Approved) %>%
+  scale()
+
+# Specify the range of clusters you want to explore
+k_range <- 2:10
+
+# Function to calculate average silhouette width for a given number of clusters (k)
+calculate_silhouette <- function(k) {
+  kmeans_result <- kmeans(CreditCard_scaled, centers = k, nstart = 25)
+  silhouette_score <- silhouette(kmeans_result$cluster, dist(CreditCard_scaled))
+  return(mean(silhouette_score[, "sil_width"]))
 }
 
-# Plot the results
-plot(2:4, silhouette_scores, type = "b", xlab = "Number of Clusters (K)", ylab = "Silhouette Score")
+# Calculate silhouette width for each k and store in a vector
+sil_widths <- sapply(k_range, calculate_silhouette)
 
-# Identify the optimal K
-optimal_k <- k_values[which.max(silhouette_scores)]
-cat("Optimal number of clusters (K) using Silhouette method:", optimal_k, "\n")
+# Find the optimal number of clusters based on the maximum silhouette width
+optimal_k_sil <- k_range[which.max(sil_widths)]
+
+# Compare results
+cat("Optimal number of clusters (silhouette method):", optimal_k_sil, "\n")
+
+# Plot silhouette width
+plot(k_range, sil_widths, type = "b", pch = 19, frame = FALSE, 
+     xlab = "Number of Clusters (k)", ylab = "Average Silhouette Width",
+     main = "Silhouette Method for Optimal Number of Clusters")
+
+# Add a point for the optimal k
+points(optimal_k_sil, sil_widths[optimal_k_sil - min(k_range) + 1], col = "red", cex = 2, pch = 19)
+
 
 ```
+
 
