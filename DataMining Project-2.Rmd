@@ -1,0 +1,1279 @@
+---
+title: "R Notebook"
+output: html_notebook
+---
+This is our dataset before pre-processing.
+```{r}
+library(readxl)
+CreditCard <- read_excel("~/Desktop/CreditCard.xlsx")
+print(CreditCard)
+```
+```{r}
+# Load the necessary libraries (if not already loaded)
+library(dplyr)
+library(readxl)
+library(ggplot2)  # Load the ggplot2 library for plotting
+
+
+your_data <-  read_excel("C:/Users/Noni/Desktop/Datamining project/Credit Card Approvals/Dataset/CreditCard.xlsx")
+
+# Calculate class distribution
+class_distribution <- your_data %>%
+  group_by(Approved) %>%
+  summarise(Count = n())
+
+# Create a bar plot to visualize class distribution
+ggplot(class_distribution, aes(x = factor(Approved), y = Count)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Class Distribution", x = "Class", y = "Count")
+
+```
+
+Data cleaning: our data set already cleaned, there are no incomplete all colomns are filled , inconsistent each colomn have the same type  or intentional data. it has only noisy data (outliers) and we removed them.
+
+
+
+
+
+
+
+Scatter plot shows the relationship between the age and the yearsEmployed if the age increased the years also will increase.
+```{r}
+#Scatter plot
+with(CreditCard, plot(Age,YearsEmployed))
+```
+
+Hisogram shows the most frequent debt which is -1.
+```{r}
+#histogram 
+var(CreditCard$Debt)
+hist(CreditCard$Debt)
+```
+
+Barplot shows how many applicants are citizen or not.
+```{r}
+#barplot
+library(dplyr)
+CreditCard$Citizen %>% table() %>% barplot()
+```
+*Data intgration(correlation analysis) first we will compare the nominal colomns with the class label.
+
+Data intgration(correlation analysis) between the Industry colomn (nominal data type) and the class label colomn approved. 
+We calculated the chi square = 98.323 and the df= 13 so we found that the crtical value for df 13 is = 34.528 ,the chi square is larger than the critical value we reject H0 so they are depandent and correlated .
+```{r}
+contingency_table <- table(CreditCard$Industry, CreditCard$Approved)
+chi_square_result <- chisq.test(contingency_table)
+print(chi_square_result)
+``` 
+Data intgration(correlation analysis) between the Ethnicity colomn (nominal data type) and the class label colomn approved. 
+We calculated the chi square = 41.813 and the df= 4 so we found that the crtical value for df 4 is = 18.465 ,the chi square is larger than the critical value we reject H0 so they are depandent and correlated .
+```{r}
+contingency_table <- table(CreditCard$Ethnicity, CreditCard$Approved)
+chi_square_result <- chisq.test(contingency_table)
+print(chi_square_result)
+```
+Data intgration(correlation analysis) between the Citizen colomn (nominal data type) and the class label colomn approved. 
+We calculated the chi square = 9.1916 and the df= 2 so we found that the crtical value for df 2 is = 13.815 ,the chi square is larger than the critical value we reject H0 so they are depandent and correlated .
+
+```{r}
+contingency_table <- table(CreditCard$Citizen, CreditCard$Approved)
+chi_square_result <- chisq.test(contingency_table)
+print(chi_square_result)
+```
+after we did chi-square all the columns was highly correlated to we didn't apply feature selection.
+
+
+
+
+
+
+*Data intgration(correlation analysis) Second we will compare the numeric colomns with the class label,we found that all numeric coulmns are positive corrleated except zip code coulmn so we need to deleate it.
+```{r}
+correlation<- cor(CreditCard$Age, CreditCard$Approved)
+print(correlation)
+```
+
+```{r}
+correlation<- cor(CreditCard$Debt, CreditCard$Approved)
+print(correlation)
+```
+
+```{r}
+correlation<- cor(CreditCard$YearsEmployed, CreditCard$Approved)
+print(correlation)
+```
+
+```{r}
+correlation<- cor(CreditCard$CreditScore, CreditCard$Approved)
+print(correlation)
+```
+```{r}
+correlation<- cor(CreditCard$Income, CreditCard$Approved)
+print(correlation)
+```
+
+
+```{r}
+correlation<- cor(CreditCard$ZipCode, CreditCard$Approved)
+print(correlation)
+```
+
+```{r}
+CreditCard<-subset(CreditCard,select= -ZipCode)
+print(CreditCard)
+```
+
+
+
+Data cleaning (noisy outliers)
+We relize in Debt coulmn has wide range so it might have outliers
+First we detect and found the outliers from the debt colomn .
+```{r}
+#Find outliers
+
+library(outliers)
+
+OutDebt = outlier(CreditCard$Debt, logical =TRUE)
+sum(OutDebt)
+Find_outlier = which(OutDebt ==TRUE, arr.ind = TRUE)
+OutDebt
+Find_outlier
+```
+Second we deleted the outliers, and then printed the data set after the changes.
+```{r}
+#remove outliers
+
+CreditCard= CreditCard[-Find_outlier,]
+print(CreditCard)
+```
+Data cleaning (noisy outliers)
+As same as Debt ,Income has also huge range.
+Here also we detect and found the outliers from the income colomn. .
+```{r}
+#Find outliers for Income
+
+library(outliers)
+
+OutIncome = outlier(CreditCard$Income, logical =TRUE)
+sum(OutIncome)
+Find_outlier = which(OutIncome ==TRUE, arr.ind = TRUE)
+OutIncome
+Find_outlier
+```
+Second we deleted the outliers from the income colomn, and then printed the data set after the changes.
+
+```{r}
+#remove outliers
+
+CreditCard= CreditCard[-Find_outlier,]
+print(CreditCard)
+```
+Data transformation (normalization)
+The range of Debt was very wide so we did normalization on Debt to make it in smaller range.
+```{r}
+#normlization
+CreditCard [, 3:3] = scale(CreditCard [, 3:3])
+print(CreditCard)
+
+```
+Data transformation (encoding)
+we noticed that the Income has huge range and The mean = 1017.386 so any value bigger than the mean we encoded it to high and any value smaller than the mean it became low.
+```{r}
+#Encoding for income
+Income_mean<- mean(CreditCard$Income)
+print(Income_mean)
+CreditCard$Income[CreditCard$Income > Income_mean]<- "High"
+CreditCard$Income[CreditCard$Income <= Income_mean]<- "low"
+print(CreditCard)
+```
+
+This is our Dataset after pre-processing.
+```{r}
+print(CreditCard)
+```
+
+
+
+```{r}
+# Load required libraries
+library(readxl)
+library(dplyr)
+library(rpart)
+library(rpart.plot)
+
+# Read the dataset
+CreditCard <- read_excel("~/Desktop/CreditCard.xlsx")
+
+# Specify the class attribute
+class_attribute <- "Approved"
+
+# List of character attributes to encode
+char_attributes_to_encode <- c("Industry", "Ethnicity", "Citizen")
+
+# Label Encoding
+for (char_attribute in char_attributes_to_encode) {
+  CreditCard[[char_attribute]] <- as.numeric(factor(CreditCard[[char_attribute]]))
+}
+
+# Split the data into training (70%) and testing (30%)
+set.seed(123)  # Set seed for reproducibility
+sample_index <- sample(1:nrow(CreditCard), 0.7 * nrow(CreditCard))
+train_data <- CreditCard[sample_index, ]
+test_data <- CreditCard[-sample_index, ]
+
+# Create a formula for the decision tree
+formula <- as.formula(paste(class_attribute, " ~ ."))
+
+# Build the decision tree using information gain on the training data
+tree_info_gain <- rpart(formula, data = train_data, method = "class", parms = list(split = "information"))
+
+# Visualize the decision tree
+rpart.plot(tree_info_gain)
+
+# Build the decision tree using information gain on the training data
+tree_info_gain <- rpart(formula, data = train_data, method = "class", parms = list(split = "information"))
+
+# Make predictions on the test data
+predicted_info_gain <- predict(tree_info_gain, test_data, type = "class")
+
+# Calculate accuracy
+accuracy_info_gain <- sum(predicted_info_gain == test_data$Approved) / nrow(test_data)
+
+# Print the accuracy
+cat("Accuracy with Information Gain (70-30 Split)", accuracy_info_gain, "\n")
+
+```
+
+
+```{r}
+# Load required libraries
+library(readxl)
+library(dplyr)
+library(rpart)
+library(rpart.plot)
+
+# Read the dataset
+CreditCard <- read_excel("~/Desktop/CreditCard.xlsx")
+
+# Specify the class attribute
+class_attribute <- "Approved"
+
+# List of character attributes to encode
+char_attributes_to_encode <- c("Industry", "Ethnicity", "Citizen")
+
+# Label Encoding
+for (char_attribute in char_attributes_to_encode) {
+  CreditCard[[char_attribute]] <- as.numeric(factor(CreditCard[[char_attribute]]))
+}
+
+# Split the data into training (70%) and testing (30%)
+set.seed(123)  # Set seed for reproducibility
+sample_index <- sample(1:nrow(CreditCard), 0.7 * nrow(CreditCard))
+train_data <- CreditCard[sample_index, ]
+test_data <- CreditCard[-sample_index, ]
+
+# Create a formula for the decision tree
+formula <- as.formula(paste(class_attribute, " ~ ."))
+
+# Build the decision tree using gain ratio on the training data
+tree_gain_ratio <- rpart(formula, data = train_data, method = "class", parms = list(split = "gain"))
+
+# Visualize the decision tree
+rpart.plot(tree_gain_ratio)
+
+# ... (previous code)
+
+# Build the decision tree using gain ratio on the training data
+tree_gain_ratio <- rpart(formula, data = train_data, method = "class", parms = list(split = "gain"))
+
+# Make predictions on the test data
+predicted_gain_ratio <- predict(tree_gain_ratio, test_data, type = "class")
+
+# Calculate accuracy
+accuracy_gain_ratio <- sum(predicted_gain_ratio == test_data$Approved) / nrow(test_data)
+
+# Print the accuracy
+cat("Accuracy with Gain Ratio (70-30 Split):", accuracy_gain_ratio, "\n")
+
+
+```
+
+
+
+
+
+```{r}
+# Load required libraries
+library(readxl)
+library(dplyr)
+library(rpart)
+library(rpart.plot)
+
+# Read the dataset
+CreditCard <- read_excel("~/Desktop/CreditCard.xlsx")
+
+# Specify the class attribute
+class_attribute <- "Approved"
+
+# List of character attributes to encode
+char_attributes_to_encode <- c("Industry", "Ethnicity", "Citizen")
+
+# Label Encoding
+for (char_attribute in char_attributes_to_encode) {
+  CreditCard[[char_attribute]] <- as.numeric(factor(CreditCard[[char_attribute]]))
+}
+
+# Split the data into training (70%) and testing (30%)
+set.seed(123)  # Set seed for reproducibility
+sample_index <- sample(1:nrow(CreditCard), 0.7 * nrow(CreditCard))
+train_data <- CreditCard[sample_index, ]
+test_data <- CreditCard[-sample_index, ]
+
+# Create a formula for the decision tree
+formula <- as.formula(paste(class_attribute, " ~ ."))
+
+# Build the decision tree using Gini index on the training data
+tree_gini_index <- rpart(formula, data = train_data, method = "class", control = rpart.control(cp = 0.005))
+
+# Visualize the decision tree
+rpart.plot(tree_gini_index)
+
+# ... (previous code)
+
+# Build the decision tree using Gini index on the training data
+tree_gini_index <- rpart(formula, data = train_data, method = "class", control = rpart.control(cp = 0.005))
+
+# Make predictions on the test data
+predicted_gini_index <- predict(tree_gini_index, test_data, type = "class")
+
+# Calculate accuracy
+accuracy_gini_index <- sum(predicted_gini_index == test_data$Approved) / nrow(test_data)
+
+# Print the accuracy
+cat("Accuracy with Gini Index (70-30 Split):", accuracy_gini_index, "\n")
+
+
+
+```
+
+
+
+
+```{r}
+# Make predictions on the test data
+predicted <- predict(tree, test_data, type = "class")
+
+# Calculate confusion matrix
+confusion_matrix <- table(Actual = test_data$Approved, Predicted = predicted)
+
+# Calculate accuracy
+accuracy <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+# Calculate precision
+precision <- confusion_matrix[2, 2] / sum(confusion_matrix[, 2])
+
+# Calculate sensitivity (true positive rate)
+sensitivity <- confusion_matrix[2, 2] / sum(confusion_matrix[2, ])
+
+# Calculate specificity (true negative rate)
+specificity <- confusion_matrix[1, 1] / sum(confusion_matrix[1, ])
+
+# Print the results
+cat("Accuracy:", accuracy, "\n")
+cat("Precision:", precision, "\n")
+cat("Sensitivity:", sensitivity, "\n")
+cat("Specificity:", specificity, "\n")
+
+```
+
+
+
+```{r}
+# Load required libraries
+library(readxl)
+library(dplyr)
+library(rpart)
+library(rpart.plot)
+
+# Read the dataset
+CreditCard <- read_excel("~/Desktop/CreditCard.xlsx")
+
+# Specify the class attribute
+class_attribute <- "Approved"
+
+# List of character attributes to encode
+char_attributes_to_encode <- c("Industry", "Ethnicity", "Citizen")
+
+# Label Encoding
+for (char_attribute in char_attributes_to_encode) {
+  CreditCard[[char_attribute]] <- as.numeric(factor(CreditCard[[char_attribute]]))
+}
+
+# Split the data into training (80%) and testing (20%)
+set.seed(123)  # Set seed for reproducibility
+sample_index <- sample(1:nrow(CreditCard), 0.8 * nrow(CreditCard))
+train_data <- CreditCard[sample_index, ]
+test_data <- CreditCard[-sample_index, ]
+
+# Create a formula for the decision tree
+formula <- as.formula(paste(class_attribute, " ~ ."))
+
+# Build the decision tree using information gain on the training data
+tree_info_gain <- rpart(formula, data = train_data, method = "class", parms = list(split = "information"))
+
+# Visualize the decision tree
+rpart.plot(tree_info_gain)
+
+# Make predictions on the test data
+predicted <- predict(tree_info_gain, test_data, type = "class")
+
+# Calculate accuracy
+accuracy <- sum(predicted == test_data$Approved) / nrow(test_data)
+cat("Accuracy with Information Gain (80-20 Split)", accuracy, "\n")
+
+
+```
+
+
+```{r}
+# Load required libraries
+library(readxl)
+library(dplyr)
+library(rpart)
+library(rpart.plot)
+
+# Read the dataset
+CreditCard <- read_excel("~/Desktop/CreditCard.xlsx")
+
+# Specify the class attribute
+class_attribute <- "Approved"
+
+# List of character attributes to encode
+char_attributes_to_encode <- c("Industry", "Ethnicity", "Citizen")
+
+# Label Encoding
+for (char_attribute in char_attributes_to_encode) {
+  CreditCard[[char_attribute]] <- as.numeric(factor(CreditCard[[char_attribute]]))
+}
+
+# Split the data into training (80%) and testing (20%)
+set.seed(123)  # Set seed for reproducibility
+sample_index <- sample(1:nrow(CreditCard), 0.8 * nrow(CreditCard))
+train_data <- CreditCard[sample_index, ]
+test_data <- CreditCard[-sample_index, ]
+
+# Create a formula for the decision tree
+formula <- as.formula(paste(class_attribute, " ~ ."))
+
+# Build the decision tree using gain ratio on the training data
+tree_gain_ratio <- rpart(formula, data = train_data, method = "class", parms = list(split = "gain"))
+
+# Visualize the decision tree
+rpart.plot(tree_gain_ratio)
+
+# Make predictions on the test data
+predicted <- predict(tree_gain_ratio, test_data, type = "class")
+
+# Calculate accuracy
+accuracy <- sum(predicted == test_data$Approved) / nrow(test_data)
+cat("Accuracy with Gain Ratio (80-20 Split):", accuracy, "\n")
+
+
+```
+
+
+```{r}
+# Load required libraries
+library(readxl)
+library(dplyr)
+library(rpart)
+library(rpart.plot)
+
+# Read the dataset
+CreditCard <- read_excel("~/Desktop/CreditCard.xlsx")
+
+# Specify the class attribute
+class_attribute <- "Approved"
+
+# List of character attributes to encode
+char_attributes_to_encode <- c("Industry", "Ethnicity", "Citizen")
+
+# Label Encoding
+for (char_attribute in char_attributes_to_encode) {
+  CreditCard[[char_attribute]] <- as.numeric(factor(CreditCard[[char_attribute]]))
+}
+
+# Split the data into training (80%) and testing (20%)
+set.seed(123)  # Set seed for reproducibility
+sample_index <- sample(1:nrow(CreditCard), 0.8 * nrow(CreditCard))
+train_data <- CreditCard[sample_index, ]
+test_data <- CreditCard[-sample_index, ]
+
+# Create a formula for the decision tree
+formula <- as.formula(paste(class_attribute, " ~ ."))
+
+# Build the decision tree using Gini index on the training data
+tree_gini_index <- rpart(formula, data = train_data, method = "class", control = rpart.control(cp = 0.005))
+
+# Visualize the decision tree
+rpart.plot(tree_gini_index)
+
+# Make predictions on the test data
+predicted <- predict(tree_gini_index, test_data, type = "class")
+
+# Calculate accuracy
+accuracy <- sum(predicted == test_data$Approved) / nrow(test_data)
+cat("Accuracy with Gini Index (80-20 Split):", accuracy, "\n")
+
+```
+
+
+
+
+```{r}
+# Make predictions on the test data
+predicted <- predict(tree, test_data, type = "class")
+
+# Calculate confusion matrix
+confusion_matrix <- table(Actual = test_data$Approved, Predicted = predicted)
+
+# Calculate accuracy
+accuracy <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+# Calculate precision
+precision <- confusion_matrix[2, 2] / sum(confusion_matrix[, 2])
+
+# Calculate sensitivity (true positive rate)
+sensitivity <- confusion_matrix[2, 2] / sum(confusion_matrix[2, ])
+
+# Calculate specificity (true negative rate)
+specificity <- confusion_matrix[1, 1] / sum(confusion_matrix[1, ])
+
+# Print the results
+cat("Accuracy:", accuracy, "\n")
+cat("Precision:", precision, "\n")
+cat("Sensitivity:", sensitivity, "\n")
+cat("Specificity:", specificity, "\n")
+
+```
+
+
+```{r}
+# Load required libraries
+library(readxl)
+library(dplyr)
+library(rpart)
+library(rpart.plot)
+
+# Read the dataset
+CreditCard <- read_excel("~/Desktop/CreditCard.xlsx")
+
+# Specify the class attribute
+class_attribute <- "Approved"
+
+# List of character attributes to encode
+char_attributes_to_encode <- c("Industry", "Ethnicity", "Citizen")
+
+# Label Encoding
+for (char_attribute in char_attributes_to_encode) {
+  CreditCard[[char_attribute]] <- as.numeric(factor(CreditCard[[char_attribute]]))
+}
+
+# Split the data into training (60%) and testing (40%)
+set.seed(123)  # Set seed for reproducibility
+sample_index <- sample(1:nrow(CreditCard), 0.6 * nrow(CreditCard))
+train_data <- CreditCard[sample_index, ]
+test_data <- CreditCard[-sample_index, ]
+
+# Create a formula for the decision tree
+formula <- as.formula(paste(class_attribute, " ~ ."))
+
+# Build the decision tree using information gain on the training data
+tree_info_gain <- rpart(formula, data = train_data, method = "class", parms = list(split = "information"))
+
+# Visualize the decision tree
+rpart.plot(tree_info_gain)
+
+# Make predictions on the test data
+predicted <- predict(tree_info_gain, test_data, type = "class")
+
+# Calculate accuracy
+accuracy <- sum(predicted == test_data$Approved) / nrow(test_data)
+cat("Accuracy with Information Gain (60-40 Split):", accuracy, "\n")
+
+
+```
+
+
+```{r}
+# Load required libraries
+library(readxl)
+library(dplyr)
+library(rpart)
+library(rpart.plot)
+
+# Read the dataset
+CreditCard <- read_excel("~/Desktop/CreditCard.xlsx")
+
+# Specify the class attribute
+class_attribute <- "Approved"
+
+# List of character attributes to encode
+char_attributes_to_encode <- c("Industry", "Ethnicity", "Citizen")
+
+# Label Encoding
+for (char_attribute in char_attributes_to_encode) {
+  CreditCard[[char_attribute]] <- as.numeric(factor(CreditCard[[char_attribute]]))
+}
+
+# Split the data into training (60%) and testing (40%)
+set.seed(123)  # Set seed for reproducibility
+sample_index <- sample(1:nrow(CreditCard), 0.6 * nrow(CreditCard))
+train_data <- CreditCard[sample_index, ]
+test_data <- CreditCard[-sample_index, ]
+
+# Create a formula for the decision tree
+formula <- as.formula(paste(class_attribute, " ~ ."))
+
+# Build the decision tree using gain ratio on the training data
+tree_gain_ratio <- rpart(formula, data = train_data, method = "class", parms = list(split = "gain"))
+
+# Visualize the decision tree
+rpart.plot(tree_gain_ratio)
+
+# Make predictions on the test data
+predicted <- predict(tree_gain_ratio, test_data, type = "class")
+
+# Calculate accuracy
+accuracy <- sum(predicted == test_data$Approved) / nrow(test_data)
+cat("Accuracy with Gain Ratio (60-40 Split):", accuracy, "\n")
+
+```
+
+```{r}
+# Load required libraries
+library(readxl)
+library(dplyr)
+library(rpart)
+library(rpart.plot)
+
+# Read the dataset
+CreditCard <- read_excel("~/Desktop/CreditCard.xlsx")
+
+# Specify the class attribute
+class_attribute <- "Approved"
+
+# List of character attributes to encode
+char_attributes_to_encode <- c("Industry", "Ethnicity", "Citizen")
+
+# Label Encoding
+for (char_attribute in char_attributes_to_encode) {
+  CreditCard[[char_attribute]] <- as.numeric(factor(CreditCard[[char_attribute]]))
+}
+
+# Split the data into training (60%) and testing (40%)
+set.seed(123)  # Set seed for reproducibility
+sample_index <- sample(1:nrow(CreditCard), 0.6 * nrow(CreditCard))
+train_data <- CreditCard[sample_index, ]
+test_data <- CreditCard[-sample_index, ]
+
+# Create a formula for the decision tree
+formula <- as.formula(paste(class_attribute, " ~ ."))
+
+# Build the decision tree using Gini index on the training data
+tree_gini_index <- rpart(formula, data = train_data, method = "class", control = rpart.control(cp = 0.005))
+
+# Visualize the decision tree
+rpart.plot(tree_gini_index)
+
+# Make predictions on the test data
+predicted <- predict(tree_gini_index, test_data, type = "class")
+
+# Calculate accuracy
+accuracy <- sum(predicted == test_data$Approved) / nrow(test_data)
+cat("Accuracy with Gini Index (60-40 Split):", accuracy, "\n")
+
+```
+
+
+
+```{r}
+# Make predictions on the test data
+predicted <- predict(tree, test_data, type = "class")
+
+# Calculate confusion matrix
+confusion_matrix <- table(Actual = test_data$Approved, Predicted = predicted)
+
+# Calculate accuracy
+accuracy <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+# Calculate precision
+precision <- confusion_matrix[2, 2] / sum(confusion_matrix[, 2])
+
+# Calculate sensitivity (true positive rate)
+sensitivity <- confusion_matrix[2, 2] / sum(confusion_matrix[2, ])
+
+# Calculate specificity (true negative rate)
+specificity <- confusion_matrix[1, 1] / sum(confusion_matrix[1, ])
+
+# Print the results
+cat("Accuracy:", accuracy, "\n")
+cat("Precision:", precision, "\n")
+cat("Sensitivity:", sensitivity, "\n")
+cat("Specificity:", specificity, "\n")
+
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
+```{r}
+# Load required libraries
+library(dplyr)
+library(factoextra)
+
+
+# Encode categorical variables (Industry, Ethnicity, Citizen)
+CreditCard_encoded <- CreditCard %>%
+  mutate(
+    Industry = as.numeric(factor(Industry)),
+    Ethnicity = as.numeric(factor(Ethnicity)),
+    Citizen = as.numeric(factor(Citizen))
+  )
+
+# Extract the features for clustering (excluding 'Approved' column)
+features <- CreditCard_encoded %>%
+  select(-Approved)
+
+# Scale the features
+scaled_data <- scale(features)
+
+# Perform k-means clustering with k=2
+kmeans_result <- kmeans(scaled_data, centers = 2, nstart = 25)
+
+# Visualize the clusters
+fviz_cluster(kmeans_result, data = scaled_data, geom = "point",
+             stand = FALSE, # Don't standardize the variables
+             main = "K-Means Clustering (k=2)")
+
+
+```
+
+```{r}
+
+cluster_assignments <- kmeans_result$cluster
+ground_truth_labels <- CreditCard$Approved 
+data <- data.frame(cluster = cluster_assignments, label = ground_truth_labels)
+
+# Function to calculate BCubed precision and recall
+calculate_bcubed_metrics <- function(data) {
+  n <- nrow(data)
+  precision_sum <- 0
+  recall_sum <- 0
+
+  for (i in 1:n) {
+    cluster <- data$cluster[i]
+    label <- data$label[i]
+    
+    # Count the number of items from the same category within the same cluster
+    same_category_same_cluster <- sum(data$label[data$cluster == cluster] == label)
+    
+    # Count the total number of items in the same cluster
+    total_same_cluster <- sum(data$cluster == cluster)
+    
+    # Count the total number of items with the same category
+    total_same_category <- sum(data$label == label)
+    
+    # Calculate precision and recall for the current item and add them to the sums
+    precision_sum <- precision_sum + same_category_same_cluster / total_same_cluster
+    recall_sum <- recall_sum + same_category_same_cluster / total_same_category
+  }
+
+  # Calculate average precision and recall
+  precision <- precision_sum / n
+  recall <- recall_sum / n
+
+  return(list(precision = precision, recall = recall))
+}
+
+# Calculate BCubed precision and recall
+metrics <- calculate_bcubed_metrics(data)
+
+# Extract precision and recall from the metrics
+precision <- metrics$precision
+recall <- metrics$recall
+
+# Print the results
+cat("BCubed Precision:", precision, "\n")
+cat("BCubed Recall:", recall, "\n")
+
+```
+
+
+```{r}
+# Load required libraries
+library(cluster)
+library(factoextra)
+library(dplyr)
+
+
+# Encoding and scaling
+CreditCard_encoded <- CreditCard %>%
+  mutate(
+    Industry = as.numeric(factor(Industry)),
+    Ethnicity = as.numeric(factor(Ethnicity)),
+    Citizen = as.numeric(factor(Citizen))
+  )
+
+# Remove the class label 'Approved'
+CreditCard_scaled <- CreditCard_encoded %>%
+  select(-Approved) %>%
+  scale()
+
+# Specify the number of clusters (k)
+k <- 2
+
+# Perform k-means clustering with k clusters
+kmeans_result <- kmeans(CreditCard_scaled, centers = k, nstart = 25)
+
+# Silhouette Score
+silhouette_score <- silhouette(kmeans_result$cluster, dist(CreditCard_scaled))
+cat("Silhouette Score for k =", k, ":", mean(silhouette_score[, "sil_width"]), "\n")
+
+# Total Within-Cluster Sum of Squares (WSS)
+wss <- kmeans_result$tot.withinss
+cat("Total Within-Cluster Sum of Squares (WSS) for k =", k, ":", wss, "\n")
+
+
+```
+```{r}
+# Load required libraries
+library(cluster)
+library(factoextra)
+library(dplyr)
+
+# Assume 'CreditCard' is your dataset
+
+# Encoding and scaling
+CreditCard_encoded <- CreditCard %>%
+  mutate(
+    Industry = as.numeric(factor(Industry)),
+    Ethnicity = as.numeric(factor(Ethnicity)),
+    Citizen = as.numeric(factor(Citizen))
+  )
+
+# Remove the class label 'Approved'
+CreditCard_scaled <- CreditCard_encoded %>%
+  select(-Approved) %>%
+  scale()
+
+# Specify the number of clusters (k)
+k <- 2
+
+# Perform k-means clustering with k clusters
+kmeans_result <- kmeans(CreditCard_scaled, centers = k, nstart = 25)
+
+# Calculate silhouette information
+sil_info <- silhouette(kmeans_result$cluster, dist(CreditCard_scaled))
+
+# Calculate average silhouette width for each cluster
+avg_sil_width <- cluster.stats(dist(CreditCard_scaled), kmeans_result$cluster)$avg.silwidth
+
+# Visualize silhouette plot
+fviz_silhouette(sil_info)
+
+# Print average silhouette width for each cluster
+cat("Average Silhouette Width for each cluster:\n")
+cat(paste("Cluster", 1:k, ": ", avg_sil_width, "\n"))
+
+
+```
+
+
+
+
+
+
+```{r}
+# Load required libraries
+library(dplyr)
+library(factoextra)
+
+
+# Encode categorical variables (Industry, Ethnicity, Citizen)
+CreditCard_encoded <- CreditCard %>%
+  mutate(
+    Industry = as.numeric(factor(Industry)),
+    Ethnicity = as.numeric(factor(Ethnicity)),
+    Citizen = as.numeric(factor(Citizen))
+  )
+
+# Extract the features for clustering (excluding 'Approved' column)
+features <- CreditCard_encoded %>%
+  select(-Approved)
+
+# Scale the features
+scaled_data <- scale(features)
+
+# Perform k-means clustering with k=3
+kmeans_result <- kmeans(scaled_data, centers = 3, nstart = 25)
+
+# Visualize the clusters
+fviz_cluster(kmeans_result, data = scaled_data, geom = "point",
+             stand = FALSE, # Don't standardize the variables
+             main = "K-Means Clustering (k=3)")
+
+```
+
+```{r}
+ cluster_assignments <- kmeans_result$cluster
+ground_truth_labels <- CreditCard$Approved 
+data <- data.frame(cluster = cluster_assignments, label = ground_truth_labels)
+
+# Function to calculate BCubed precision and recall
+calculate_bcubed_metrics <- function(data) {
+  n <- nrow(data)
+  precision_sum <- 0
+  recall_sum <- 0
+
+  for (i in 1:n) {
+    cluster <- data$cluster[i]
+    label <- data$label[i]
+    
+    # Count the number of items from the same category within the same cluster
+    same_category_same_cluster <- sum(data$label[data$cluster == cluster] == label)
+    
+    # Count the total number of items in the same cluster
+    total_same_cluster <- sum(data$cluster == cluster)
+    
+    # Count the total number of items with the same category
+    total_same_category <- sum(data$label == label)
+    
+    # Calculate precision and recall for the current item and add them to the sums
+    precision_sum <- precision_sum + same_category_same_cluster / total_same_cluster
+    recall_sum <- recall_sum + same_category_same_cluster / total_same_category
+  }
+
+  # Calculate average precision and recall
+  precision <- precision_sum / n
+  recall <- recall_sum / n
+
+  return(list(precision = precision, recall = recall))
+}
+
+# Calculate BCubed precision and recall
+metrics <- calculate_bcubed_metrics(data)
+
+# Extract precision and recall from the metrics
+precision <- metrics$precision
+recall <- metrics$recall
+
+# Print the results
+cat("BCubed Precision:", precision, "\n")
+cat("BCubed Recall:", recall, "\n")
+
+```
+
+
+```{r}
+# Load required libraries
+library(cluster)
+library(factoextra)
+library(dplyr)
+
+# Encoding and scaling
+CreditCard_encoded <- CreditCard %>%
+  mutate(
+    Industry = as.numeric(factor(Industry)),
+    Ethnicity = as.numeric(factor(Ethnicity)),
+    Citizen = as.numeric(factor(Citizen))
+  )
+
+# Remove the class label 'Approved'
+CreditCard_scaled <- CreditCard_encoded %>%
+  select(-Approved) %>%
+  scale()
+
+# Specify the number of clusters (k)
+k <- 3
+
+# Perform k-means clustering with k clusters
+kmeans_result <- kmeans(CreditCard_scaled, centers = k, nstart = 25)
+
+# Silhouette Score
+silhouette_score <- silhouette(kmeans_result$cluster, dist(CreditCard_scaled))
+cat("Silhouette Score for k =", k, ":", mean(silhouette_score[, "sil_width"]), "\n")
+
+# Total Within-Cluster Sum of Squares (WSS)
+wss <- kmeans_result$tot.withinss
+cat("Total Within-Cluster Sum of Squares (WSS) for k =", k, ":", wss, "\n")
+
+
+
+```
+```{r}
+# Load required libraries
+library(cluster)
+library(factoextra)
+library(dplyr)
+
+
+# Encoding and scaling
+CreditCard_encoded <- CreditCard %>%
+  mutate(
+    Industry = as.numeric(factor(Industry)),
+    Ethnicity = as.numeric(factor(Ethnicity)),
+    Citizen = as.numeric(factor(Citizen))
+  )
+
+# Remove the class label 'Approved'
+CreditCard_scaled <- CreditCard_encoded %>%
+  select(-Approved) %>%
+  scale()
+
+# Specify the number of clusters (k)
+k <- 3
+
+# Perform k-means clustering with k clusters
+kmeans_result <- kmeans(CreditCard_scaled, centers = k, nstart = 25)
+
+# Calculate silhouette information
+sil_info <- silhouette(kmeans_result$cluster, dist(CreditCard_scaled))
+
+# Calculate average silhouette width for each cluster
+avg_sil_width <- cluster.stats(dist(CreditCard_scaled), kmeans_result$cluster)$avg.silwidth
+
+# Visualize silhouette plot
+fviz_silhouette(sil_info)
+
+# Print average silhouette width for each cluster
+cat("Average Silhouette Width for each cluster:\n")
+cat(paste("Cluster", 1:k, ": ", avg_sil_width, "\n"))
+
+
+```
+
+
+
+```{r}
+# Load required libraries
+library(dplyr)
+library(factoextra)
+
+
+# Encode categorical variables (Industry, Ethnicity, Citizen)
+CreditCard_encoded <- CreditCard %>%
+  mutate(
+    Industry = as.numeric(factor(Industry)),
+    Ethnicity = as.numeric(factor(Ethnicity)),
+    Citizen = as.numeric(factor(Citizen))
+  )
+
+# Extract the features for clustering (excluding 'Approved' column)
+features <- CreditCard_encoded %>%
+  select(-Approved)
+
+# Scale the features
+scaled_data <- scale(features)
+
+# Perform k-means clustering with k=2
+kmeans_result <- kmeans(scaled_data, centers = 4, nstart = 25)
+
+# Visualize the clusters
+fviz_cluster(kmeans_result, data = scaled_data, geom = "point",
+             stand = FALSE, # Don't standardize the variables
+             main = "K-Means Clustering (k=4)")
+
+```
+
+```{r}
+cluster_assignments <- kmeans_result$cluster
+ground_truth_labels <- CreditCard$Approved 
+data <- data.frame(cluster = cluster_assignments, label = ground_truth_labels)
+
+# Function to calculate BCubed precision and recall
+calculate_bcubed_metrics <- function(data) {
+  n <- nrow(data)
+  precision_sum <- 0
+  recall_sum <- 0
+
+  for (i in 1:n) {
+    cluster <- data$cluster[i]
+    label <- data$label[i]
+    
+    # Count the number of items from the same category within the same cluster
+    same_category_same_cluster <- sum(data$label[data$cluster == cluster] == label)
+    
+    # Count the total number of items in the same cluster
+    total_same_cluster <- sum(data$cluster == cluster)
+    
+    # Count the total number of items with the same category
+    total_same_category <- sum(data$label == label)
+    
+    # Calculate precision and recall for the current item and add them to the sums
+    precision_sum <- precision_sum + same_category_same_cluster / total_same_cluster
+    recall_sum <- recall_sum + same_category_same_cluster / total_same_category
+  }
+
+  # Calculate average precision and recall
+  precision <- precision_sum / n
+  recall <- recall_sum / n
+
+  return(list(precision = precision, recall = recall))
+}
+
+# Calculate BCubed precision and recall
+metrics <- calculate_bcubed_metrics(data)
+
+# Extract precision and recall from the metrics
+precision <- metrics$precision
+recall <- metrics$recall
+
+# Print the results
+cat("BCubed Precision:", precision, "\n")
+cat("BCubed Recall:", recall, "\n")
+```
+
+
+```{r}
+# Load required libraries
+library(cluster)
+library(factoextra)
+library(dplyr)
+
+
+# Encoding and scaling
+CreditCard_encoded <- CreditCard %>%
+  mutate(
+    Industry = as.numeric(factor(Industry)),
+    Ethnicity = as.numeric(factor(Ethnicity)),
+    Citizen = as.numeric(factor(Citizen))
+  )
+
+# Remove the class label 'Approved'
+CreditCard_scaled <- CreditCard_encoded %>%
+  select(-Approved) %>%
+  scale()
+
+# Specify the number of clusters (k)
+k <- 4
+
+# Perform k-means clustering with k clusters
+kmeans_result <- kmeans(CreditCard_scaled, centers = k, nstart = 25)
+
+# Silhouette Score
+silhouette_score <- silhouette(kmeans_result$cluster, dist(CreditCard_scaled))
+cat("Silhouette Score for k =", k, ":", mean(silhouette_score[, "sil_width"]), "\n")
+
+
+# Total Within-Cluster Sum of Squares (WSS)
+wss <- kmeans_result$tot.withinss
+cat("Total Within-Cluster Sum of Squares (WSS) for k =", k, ":", wss, "\n")
+
+
+```
+
+```{r}
+# Load required libraries
+library(cluster)
+library(factoextra)
+library(dplyr)
+
+
+# Encoding and scaling
+CreditCard_encoded <- CreditCard %>%
+  mutate(
+    Industry = as.numeric(factor(Industry)),
+    Ethnicity = as.numeric(factor(Ethnicity)),
+    Citizen = as.numeric(factor(Citizen))
+  )
+
+# Remove the class label 'Approved'
+CreditCard_scaled <- CreditCard_encoded %>%
+  select(-Approved) %>%
+  scale()
+
+# Specify the number of clusters (k)
+k <- 4
+
+# Perform k-means clustering with k clusters
+kmeans_result <- kmeans(CreditCard_scaled, centers = k, nstart = 25)
+
+
+# Calculate average silhouette width for each cluster
+avg_sil_width <- cluster.stats(dist(CreditCard_scaled), kmeans_result$cluster)$avg.silwidth
+
+# Visualize silhouette plot
+fviz_silhouette(sil_info)
+
+# Print average silhouette width for each cluster
+cat("Average Silhouette Width for each cluster:\n")
+cat(paste("Cluster", 1:k, ": ", avg_sil_width, "\n"))
+
+
+```
+
+
+
+
+
+```{r}
+# Load required libraries
+library(cluster)
+library(factoextra)
+library(dplyr)
+
+# Encoding and scaling
+CreditCard_encoded <- CreditCard %>%
+  mutate(
+    Industry = as.numeric(factor(Industry)),
+    Ethnicity = as.numeric(factor(Ethnicity)),
+    Citizen = as.numeric(factor(Citizen))
+  )
+
+# Remove the class label 'Approved'
+CreditCard_scaled <- CreditCard_encoded %>%
+  select(-Approved) %>%
+  scale()
+
+# Specify the range of clusters you want to explore
+k_range <- 2:10
+
+# Function to calculate average silhouette width for a given number of clusters (k)
+calculate_silhouette <- function(k) {
+  kmeans_result <- kmeans(CreditCard_scaled, centers = k, nstart = 25)
+  silhouette_score <- silhouette(kmeans_result$cluster, dist(CreditCard_scaled))
+  return(mean(silhouette_score[, "sil_width"]))
+}
+
+# Calculate silhouette width for each k and store in a vector
+sil_widths <- sapply(k_range, calculate_silhouette)
+
+# Find the optimal number of clusters based on the maximum silhouette width
+optimal_k_sil <- k_range[which.max(sil_widths)]
+
+# Compare results
+cat("Optimal number of clusters (silhouette method):", optimal_k_sil, "\n")
+
+# Plot silhouette width
+plot(k_range, sil_widths, type = "b", pch = 19, frame = FALSE, 
+     xlab = "Number of Clusters (k)", ylab = "Average Silhouette Width",
+     main = "Silhouette Method for Optimal Number of Clusters")
+
+# Add a point for the optimal k
+points(optimal_k_sil, sil_widths[optimal_k_sil - min(k_range) + 1], col = "red", cex = 2, pch = 19)
+
+
+```
+
+
+
