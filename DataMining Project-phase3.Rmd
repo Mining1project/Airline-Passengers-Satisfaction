@@ -1224,7 +1224,7 @@ fviz_cluster(kmeans_result, data = scaled_data, geom = "point",
              main = "K-Means Clustering (k=4)")
 
 ```
-### the following code calculates BCubed precision and recall for evaluating the quality of our clustering result compared to ground truth labels.
+## the following code calculates BCubed precision and recall for evaluating the quality of our clustering result compared to ground truth labels.
 ```{r}
 cluster_assignments <- kmeans_result$cluster
 ground_truth_labels <- CreditCard$Approved 
