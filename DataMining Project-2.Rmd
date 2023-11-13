@@ -8,6 +8,9 @@ library(readxl)
 CreditCard <- read_excel("~/Desktop/CreditCard.xlsx")
 print(CreditCard)
 ```
+
+
+our class label is Approved and as shown in the plot the heights of the bars are roughly equal,so the class label is balanced
 ```{r}
 # Load the necessary libraries (if not already loaded)
 library(dplyr)
