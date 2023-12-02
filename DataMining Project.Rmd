@@ -1,0 +1,2835 @@
+---
+title: "R Notebook"
+output:
+  html_document:
+    df_print: paged
+editor_options: 
+  markdown: 
+    wrap: 4
+---
+
+# Credit Card Approval
+
+##1-
+Problem
+This
+problem
+directly
+affects
+the
+access
+of
+individuals
+to
+financial
+resources.
+Credit
+card
+approval
+processes
+that
+are
+fair
+and
+accurate
+not
+only
+safeguard
+the
+interests
+of
+financial
+institutions,
+but
+also
+ensure
+that
+qualified
+applicants
+receive
+the
+opportunities
+they
+deserve.
+In
+addition,
+with
+automated
+decision-making
+systems
+becoming
+more
+popular,
+it
+becomes
+crucial
+to
+scrutinize
+and
+refine
+the
+models
+guiding
+these
+processes.
+\##
+Goal
+:
+
+The
+goal
+of
+collecting
+of
+this
+dataset
+to
+predict
+which
+people
+in
+the
+dataset
+are
+successful
+in
+applying
+for
+a
+credit
+card.
+
+Here
+is
+the
+data
+source
+link
+It
+from
+Kaggle
+website
+,
+The
+link(
+<https://www.kaggle.com/datasets/samuelcortinhas/credit-card-approval-clean-data>)
+show
+the
+source
+data.
+
+the
+dataset
+contains
+16
+attribute
+and
+691
+rows.
+
+## 2-Data Mining Task
+
+in
+our
+project
+we
+will
+use
+two
+data
+mining
+tasks
+to
+help
+us
+predict
+if
+customer
+is
+are
+eligible
+to
+have
+credit
+card
+,
+which
+are
+classification
+and
+clustering
+,
+for
+classification
+we
+will
+train
+our
+model
+to
+be
+able
+to
+classify
+if
+customer
+eligible
+to
+have
+credit
+card
+or
+not
+using
+(approved)class
+based
+on
+various
+features
+and
+attributes
+associated
+with
+the
+applicants
+like
+age,debt,bankcustomer,yaeremploy
+..etc
+,
+for
+clustering
+our
+model
+will
+create
+a
+set
+of
+clusters
+for
+customers
+who
+have
+similar
+characterisitics,then
+we
+wll
+use
+it
+to
+predict
+new
+customer
+results.
+
+## 3-Data
+
+Here
+is
+the
+data
+source
+link
+It
+from
+Kaggle
+website
+,
+The
+link(
+<https://www.kaggle.com/datasets/samuelcortinhas/credit-card-approval-clean-data>)
+show
+the
+source
+data.
+the
+dataset
+contains
+16
+attribute
+and
+691
+rows.
+Gender
+(binary)
+Age(numeric
+interval)
+Debt(numeric
+interval)
+Married(binary)
+BankCustomer(binary)
+industry(nominal)
+Ethnicity(nominal)
+YearsEmployed(numeric
+interval)
+PriorDefault(binary)
+Employed(binary)
+CreditScore(numeric
+ratio)
+DriverLicense(binary)
+Citizen(nominal)
+Zipcode(nominal)
+Income(numeric
+ratio)
+Approved(class label)(binary)
+
+
+### statistical measures for numeric attributes.
+
+```{r}
+summary(CreditCard$Age)
+```
+
+```{r}
+summary(CreditCard$Debt)
+
+```
+
+```{r}
+summary(CreditCard$YearsEmployed)
+
+```
+
+```{r}
+summary(CreditCard$CreditScore)
+
+```
+
+```{r}
+summary(CreditCard$Income)
+
+```
+
+```{r}
+#Find outliers for CreditScore
+
+library(outliers)
+
+OutCreditScore = outlier(CreditCard$CreditScore, logical =TRUE)
+sum(OutCreditScore)
+Find_outlier = which(OutCreditScore ==TRUE, arr.ind = TRUE)
+OutCreditScore
+Find_outlier
+
+# Create boxplot
+boxplot(CreditCard$CreditScore)
+```
+
+```{r}
+#Find outliers for Income
+
+library(outliers)
+
+OutIncome = outlier(CreditCard$Income, logical =TRUE)
+sum(OutIncome)
+Find_outlier = which(OutIncome ==TRUE, arr.ind = TRUE)
+OutIncome
+Find_outlier
+
+# Create boxplot
+boxplot(CreditCard$Income)
+```
+
+```{r}
+#Find outliers for Age
+
+library(outliers)
+
+OutAge = outlier(CreditCard$Age, logical =TRUE)
+sum(OutAge)
+Find_outlier = which(OutAge ==TRUE, arr.ind = TRUE)
+OutAge
+Find_outlier
+
+# Create boxplot
+boxplot(CreditCard$Age)
+```
+
+```{r}
+#Find outliers for Debt
+
+library(outliers)
+
+OutDebt = outlier(CreditCard$Debt, logical =TRUE)
+sum(OutDebt)
+Find_outlier = which(OutDebt ==TRUE, arr.ind = TRUE)
+OutDebt
+Find_outlier
+
+# Create boxplot
+boxplot(CreditCard$Debt)
+
+```
+
+```{r}
+#Find outliers for YearsEmployed
+
+library(outliers)
+
+OutYearsEmployed = outlier(CreditCard$YearsEmployed, logical =TRUE)
+sum(OutYearsEmployed)
+Find_outlier = which(OutYearsEmployed ==TRUE, arr.ind = TRUE)
+OutYearsEmployed
+Find_outlier
+
+# Create boxplot
+boxplot(CreditCard$YearsEmployed)
+```
+
+## our class label is Approved and as shown in the plot the heights of the bars are roughly equal,so the class label is balanced.
+
+```{r}
+# Load the necessary libraries (if not already loaded)
+library(dplyr)
+library(readxl)
+library(ggplot2)  # Load the ggplot2 library for plotting
+
+
+CreditCard <- read_excel("C:/Users/Noni/Desktop/Datamining project/Credit Card Approvals/Dataset/CreditCard.xlsx")
+
+# Calculate class distribution
+class_distribution <- CreditCard %>%
+  group_by(Approved) %>%
+  summarise(Count = n())
+
+# Create a bar plot to visualize class distribution
+ggplot(class_distribution, aes(x = factor(Approved), y = Count)) +
+  geom_bar(stat = "identity") +
+  labs(title = "Class Distribution", x = "Class", y = "Count")
+
+```
+
+### the scatter plot shows the relationship between age and credit score.there are a lot of variation in the data, with some younger people having higher credit scores than older people. This is likely due to a variety of factors, such as income, debt, and spending habits.
+
+### Reasons to preprocessing are:
+
+### 1-The data is noisy, meaning that there are outliers.
+
+### 2-The data is not evenly distributed across all age groups.
+
+```{r}
+plot(CreditCard$Age, CreditCard$CreditScore, main = "Scatter Plot: Age vs. CreditScore", xlab = "Age", ylab = "CreditScore", pch = 19)
+```
+
+### Hisogram shows the most frequent debt which is -1.
+
+### The histogram of credit card debt shows that the data is not evenly distributed. There are a large number of people with low credit card debt, and a smaller number of people with high credit card debt. This suggests that the data may be skewed to the right.This information helped me to decide that my data needs preprocessing.
+
+```{r}
+#histogram 
+var(CreditCard$Debt)
+hist(CreditCard$Debt)
+```
+
+### The information that the plot provides about the dataset is that the incomes of the credit card customers in the dataset vary widely, from around 0 to around 40k. The plot also shows that there are some outliers, with a few customers having incomes that are much higher than the average.This information helped me to decide that the data needs preprocessing because it shows that there are some outliers in the dataset.
+
+```{r}
+# Example: Creating a line plot
+plot(CreditCard$Income, type = "l", col = "red", lwd = 2, main = "Line Plot of Numeric Variable")
+
+```
+
+## 4-Data preprocessing
+
+### This is our dataset before pre-processing.
+
+```{r}
+library(readxl)
+CreditCard <- read_excel("C:/Users/Noni/Desktop/Datamining project/Credit Card Approvals/Dataset/CreditCard.xlsx")
+print(CreditCard)
+```
+
+# first step:Data cleaning:
+
+### our data set already cleaned, there are no incomplete all colomns are filled , inconsistent each colomn have the same type or intentional data. it has only noisy data (outliers) and we removed them.
+
+```{r}
+#remove outliers
+CreditCard= CreditCard[-Find_outlier,]
+```
+
+## second step: Data intgration
+
+### In order to determine how each attribute is correlated with the class label by using correlation analysis methods in R, from the second step of data integration، we have selected correlation analysis. If we find a strongly correlated column, we will remove it.The nominal attributes are:(Industry,Ethnicity,Citizen), The numeric attributes are:(Age,Debt,YearsEmployed,CreditScore,Income,Zipcode).
+
+#### first we will compare the nominal colomns with the class label.
+
+#### between the Industry colomn (nominal data type) and the class label colomn approved.
+
+#### We calculated the chi square = 98.323 and the df= 13 so we found that the crtical value for df 13 is = 34.528 ,the chi square is larger than the critical value we reject H0 so they are depandent and correlated .
+
+```{r}
+contingency_table <- table(CreditCard$Industry, CreditCard$Approved)
+chi_square_result <- chisq.test(contingency_table)
+print(chi_square_result)
+```
+
+### between the Ethnicity colomn (nominal data type) and the class label colomn approved.
+
+### We calculated the chi square = 41.813 and the df= 4 so we found that the crtical value for df 4 is = 18.465 ,the chi square is larger than the critical value we reject H0 so they are depandent and correlated .
+
+```{r}
+contingency_table <- table(CreditCard$Ethnicity, CreditCard$Approved)
+chi_square_result <- chisq.test(contingency_table)
+print(chi_square_result)
+```
+
+### between the Citizen colomn (nominal data type) and the class label colomn approved.
+
+### We calculated the chi square = 9.1916 and the df= 2 so we found that the crtical value for df 2 is = 13.815 ,the chi square is larger than the critical value we reject H0 so they are depandent and correlated .
+
+```{r}
+contingency_table <- table(CreditCard$Citizen, CreditCard$Approved)
+chi_square_result <- chisq.test(contingency_table)
+print(chi_square_result)
+```
+
+### after we did chi-square all the columns was highly correlated to class label we didn't apply feature selection on the nominal coulmns.
+
+# Data intgration(correlation analysis)
+
+### Second we will compare the numeric colomns with the class label,we found that all numeric coulmns are positive corrleated except zip code coulmn so we need to deleate it.
+
+```{r}
+correlation<- cor(CreditCard$Age, CreditCard$Approved)
+print(correlation)
+```
+
+```{r}
+correlation<- cor(CreditCard$Debt, CreditCard$Approved)
+print(correlation)
+```
+
+```{r}
+correlation<- cor(CreditCard$YearsEmployed, CreditCard$Approved)
+print(correlation)
+```
+
+```{r}
+correlation<- cor(CreditCard$CreditScore, CreditCard$Approved)
+print(correlation)
+```
+
+```{r}
+correlation<- cor(CreditCard$Income, CreditCard$Approved)
+print(correlation)
+```
+
+```{r}
+correlation<- cor(CreditCard$ZipCode, CreditCard$Approved)
+print(correlation)
+```
+
+```{r}
+CreditCard<-subset(CreditCard,select= -ZipCode)
+```
+
+## Third step: Data reduction
+
+#### after Data intgration all atrributes are highly correlated with the class label which indicates relevance.
+
+# Fourth step: Data transformation
+
+#### we did normalization to give all attributes an equal weight.
+
+there
+is
+one
+attribute
+has
+wide
+range
+so
+we
+did
+normalization
+to
+make
+it
+in
+smaller
+range.
+
+```{r}
+#normlization
+CreditCard [, 3:3] = scale(CreditCard [, 3:3])
+```
+
+## encoding
+
+### we noticed that the Income has huge range and The mean = 1017.386 so any value bigger than the mean we encoded it to high and any value smaller than the mean it became low.
+
+```{r}
+#Encoding for income
+Income_mean<- mean(CreditCard$Income)
+print(Income_mean)
+CreditCard$Income[CreditCard$Income > Income_mean]<- "High"
+CreditCard$Income[CreditCard$Income <= Income_mean]<- "low"
+
+```
+
+# This is our Dataset after pre-processing.
+
+```{r}
+print(CreditCard)
+```
+
+# 5-Data Mining Technique
+
+#### We applied both supervised and unsupervised learning to our data using classification and clustering techniques.
+
+for
+classification,
+we
+employed
+a
+decision
+tree,
+a
+recursive
+technique
+that
+creates
+a
+tree
+with
+leaf
+nodes
+that
+indicate
+the
+final
+decisions,
+for
+categorization.
+Based
+on
+the
+remaining
+parameters
+(age,
+gender,
+debt,
+married,
+bank
+customer,
+industry,
+ethnicity,
+years
+employed,
+prior
+default,
+employed,creditscore,
+driver's
+license,
+citizenship,
+and
+income),
+our
+model
+will
+predict
+the
+class
+label
+(Approved),
+which
+has
+two
+classes:
+yes
+and
+no.
+Using
+this
+method,
+the
+dataset
+is
+split
+into
+two
+sets:
+•
+Training
+dataset:
+Used
+for
+building
+the
+decision
+tree.
+•
+Testing
+dataset:
+Used
+to
+evaluate
+the
+constructed
+model.
+Finally,
+we
+use
+a
+confusion
+matrix
+to
+analyze
+the
+accuracy,
+precision,
+sensitivity,
+and
+specificity
+of
+each
+dataset
+measure
+in
+order
+to
+assess
+our
+model.
+
+for
+clustering,
+We
+used
+all
+other
+attributes
+(age,
+gender,
+debt,
+married,
+bankcustomer,
+industry,
+ethincity,
+yearsemployed,
+priordefault,
+employed,creditscore,driverlicense,citizien
+and
+income)
+instead
+of
+the
+class
+label
+attribute
+"Approved"
+because
+clustering,
+being
+an
+unsupervised
+learning
+process,
+does
+not
+require
+a
+class
+label
+for
+cluster
+implementation.
+Since
+all
+of
+these
+attributes
+are
+of
+type
+numeric,
+there
+is
+no
+need
+to
+convert
+them
+beforehand.
+We
+used
+the
+K-mean
+algorithm
+to
+implement
+the
+clusters.
+This
+algorithm
+creates
+K
+clusters,
+each
+of
+which
+is
+represented
+by
+its
+center
+point.
+It
+then
+assigns
+each
+object
+to
+the
+closest
+cluster,
+recalculating
+the
+center
+iteratively
+and
+assigning
+the
+object
+again
+until
+the
+object
+is
+in
+the
+correct
+cluster,
+as
+indicated
+by
+the
+center
+point
+of
+each
+cluster
+remaining
+constant.
+
+for
+classification
+we
+used
+packages:
+-readxl:
+This
+package
+is
+used
+for
+reading
+Excel
+files.
+-dplyr:
+This
+package
+is
+used
+for
+data
+manipulation
+and
+transformation.
+-rpart:
+This
+package
+is
+used
+for
+building
+decision
+trees.
+-rpart.plot:
+This
+package
+is
+used
+for
+visualizing
+decision
+trees.
+
+for
+methods:
+-sample
+function
+to
+split
+the
+dataset
+into
+training
+and
+testing.
+-rpart
+function
+to
+build
+decision
+trees.
+
+for
+clustring
+we
+used
+packages:
+-dplyr:
+A
+popular
+package
+for
+data
+manipulation
+and
+transformation.
+-factoextra:
+A
+package
+for
+extracting
+and
+visualizing
+the
+results
+of
+multivariate
+data
+analyses.
+
+Methods:
+mutate():
+A
+dplyr
+function
+used
+to
+create
+new
+variables
+or
+modify
+existing
+variables
+in a
+data
+frame.
+factor():
+A
+base
+R
+function
+used
+to
+convert
+a
+variable
+into
+a
+factor.
+as.numeric():
+A
+base
+R
+function
+used
+to
+convert
+a
+variable
+into
+numeric
+type.
+select():
+A
+dplyr
+function
+used
+to
+select
+specific
+columns
+from
+a
+data
+frame.
+scale():
+A
+base
+R
+function
+used
+to
+standardize
+(scale)
+the
+variables
+of a
+data
+frame.
+kmeans():
+A
+base
+R
+function
+used
+to
+perform
+k-means
+clustering.
+fviz_cluster():
+A
+function
+from
+the
+factoextra
+package
+used
+to
+visualize
+clustering
+results
+
+# 6-Evaluation and Comparison.
+
+### we split the data into training and testing sets using a 70-30 ratio because it helps preventing overfitting and it provides better real-world performance estimation.
+
+### then we created a formula for the decision tree using the specified class attribute. Then, we built the decision tree model using the `rpart()` function with the "class" method and information gain as the splitting criterion.
+
+### Finally, we visualized the decision tree using the `rpart.plot()` function.
+
+```{r}
+# Load required libraries
+library(readxl)
+library(dplyr)
+library(rpart)
+library(rpart.plot)
+
+# Read the dataset
+CreditCard <- read_excel("C:/Users/Noni/Desktop/Datamining project/Credit Card Approvals/Dataset/CreditCard.xlsx")
+
+# Specify the class attribute
+class_attribute <- "Approved"
+
+# List of character attributes to encode
+char_attributes_to_encode <- c("Industry", "Ethnicity", "Citizen")
+
+# Label Encoding
+for (char_attribute in char_attributes_to_encode) {
+  CreditCard[[char_attribute]] <- as.numeric(factor(CreditCard[[char_attribute]]))
+}
+
+# Split the data into training (70%) and testing (30%)
+set.seed(123)  # Set seed for reproducibility
+sample_index <- sample(1:nrow(CreditCard), 0.7 * nrow(CreditCard))
+train_data <- CreditCard[sample_index, ]
+test_data <- CreditCard[-sample_index, ]
+
+# Create a formula for the decision tree
+formula <- as.formula(paste(class_attribute, " ~ ."))
+
+# Build the decision tree using information gain on the training data
+tree_info_gain <- rpart(formula, data = train_data, method = "class", parms = list(split = "information"))
+
+# Visualize the decision tree
+rpart.plot(tree_info_gain)
+
+# Build the decision tree using information gain on the training data
+tree_info_gain <- rpart(formula, data = train_data, method = "class", parms = list(split = "information"))
+
+# Make predictions on the test data
+predicted_info_gain <- predict(tree_info_gain, test_data, type = "class")
+
+# Calculate accuracy, precision, sensitivity, and specificity
+conf_matrix <- table(predicted_info_gain , test_data$Approved)
+
+# Accuracy
+accuracy <- sum(diag(conf_matrix)) / sum(conf_matrix)
+
+# Precision
+precision <- conf_matrix[2, 2] / sum(conf_matrix[, 2])
+
+# Sensitivity (Recall)
+sensitivity <- conf_matrix[2, 2] / sum(conf_matrix[2, ])
+
+# Specificity
+specificity <- conf_matrix[1, 1] / sum(conf_matrix[1, ])
+
+# Print the results
+cat("Accuracy:", accuracy, "\n")
+cat("Precision:", precision, "\n")
+cat("Sensitivity (Recall):", sensitivity, "\n")
+cat("Specificity:", specificity, "\n")
+
+```
+
+### then, we Built the decision tree using C5.0 with gain ratio Assuming that "Approved" is a binary variable (0 or 1) and printed it.
+
+```{r}
+# Load required libraries
+library(readxl)
+library(dplyr)
+library(rpart)
+library(rpart.plot)
+
+# Read the dataset
+CreditCard <- read_excel("C:/Users/Noni/Desktop/Datamining project/Credit Card Approvals/Dataset/CreditCard.xlsx")
+# Specify the class attribute
+class_attribute <- "Approved"
+
+# List of character attributes to encode
+char_attributes_to_encode <- c("Industry", "Ethnicity", "Citizen")
+
+# Label Encoding
+for (char_attribute in char_attributes_to_encode) {
+  CreditCard[[char_attribute]] <- as.numeric(factor(CreditCard[[char_attribute]]))
+}
+
+# Split the data into training (70%) and testing (30%)
+set.seed(123)  # Set seed for reproducibility
+sample_index <- sample(1:nrow(CreditCard), 0.7 * nrow(CreditCard))
+train_data <- CreditCard[sample_index, ]
+test_data <- CreditCard[-sample_index, ]
+
+# Create a formula for the decision tree
+formula <- as.formula(paste(class_attribute, " ~ ."))
+
+# Build the decision tree using gain ratio on the training data
+tree_gain_ratio <- rpart(formula, data = train_data, method = "class", parms = list(split = "gain"))
+
+# Visualize the decision tree
+rpart.plot(tree_gain_ratio)
+
+
+# Build the decision tree using gain ratio on the training data
+tree_gain_ratio <- rpart(formula, data = train_data, method = "class", parms = list(split = "gain"))
+
+# Make predictions on the test data
+predicted_gain_ratio <- predict(tree_gain_ratio, test_data, type = "class")
+
+# Calculate accuracy, precision, sensitivity, and specificity
+conf_matrix <- table(predicted_gain_ratio, test_data$Approved)
+
+# Accuracy
+accuracy <- sum(diag(conf_matrix)) / sum(conf_matrix)
+
+# Precision
+precision <- conf_matrix[2, 2] / sum(conf_matrix[, 2])
+
+# Sensitivity (Recall)
+sensitivity <- conf_matrix[2, 2] / sum(conf_matrix[2, ])
+
+# Specificity
+specificity <- conf_matrix[1, 1] / sum(conf_matrix[1, ])
+
+# Print the results
+cat("Accuracy:", accuracy, "\n")
+cat("Precision:", precision, "\n")
+cat("Sensitivity (Recall):", sensitivity, "\n")
+cat("Specificity:", specificity, "\n")
+
+```
+
+### then created a formula for the decision tree using the specified class attribute. Then, built the decision tree model using the `rpart()` function with the "class" method and Gini index as the splitting criterion.
+
+```{r}
+# Load required libraries
+library(readxl)
+library(dplyr)
+library(rpart)
+library(rpart.plot)
+
+# Read the dataset
+CreditCard <- read_excel("C:/Users/Noni/Desktop/Datamining project/Credit Card Approvals/Dataset/CreditCard.xlsx")
+
+# Specify the class attribute
+class_attribute <- "Approved"
+
+# List of character attributes to encode
+char_attributes_to_encode <- c("Industry", "Ethnicity", "Citizen")
+
+# Label Encoding
+for (char_attribute in char_attributes_to_encode) {
+  CreditCard[[char_attribute]] <- as.numeric(factor(CreditCard[[char_attribute]]))
+}
+
+# Split the data into training (70%) and testing (30%)
+set.seed(123)  # Set seed for reproducibility
+sample_index <- sample(1:nrow(CreditCard), 0.7 * nrow(CreditCard))
+train_data <- CreditCard[sample_index, ]
+test_data <- CreditCard[-sample_index, ]
+
+# Create a formula for the decision tree
+formula <- as.formula(paste(class_attribute, " ~ ."))
+
+# Build the decision tree using Gini index on the training data
+tree_gini_index <- rpart(formula, data = train_data, method = "class", control = rpart.control(cp = 0.005))
+
+# Visualize the decision tree
+rpart.plot(tree_gini_index)
+
+
+# Build the decision tree using Gini index on the training data
+tree_gini_index <- rpart(formula, data = train_data, method = "class", control = rpart.control(cp = 0.005))
+
+# Make predictions on the test data
+predicted_gini_index <- predict(tree_gini_index, test_data, type = "class")
+
+# Calculate accuracy, precision, sensitivity, and specificity
+conf_matrix <- table(predicted_gini_index, test_data$Approved)
+
+# Accuracy
+accuracy <- sum(diag(conf_matrix)) / sum(conf_matrix)
+
+# Precision
+precision <- conf_matrix[2, 2] / sum(conf_matrix[, 2])
+
+# Sensitivity (Recall)
+sensitivity <- conf_matrix[2, 2] / sum(conf_matrix[2, ])
+
+# Specificity
+specificity <- conf_matrix[1, 1] / sum(conf_matrix[1, ])
+
+# Print the results
+cat("Accuracy:", accuracy, "\n")
+cat("Precision:", precision, "\n")
+cat("Sensitivity (Recall):", sensitivity, "\n")
+cat("Specificity:", specificity, "\n")
+
+
+```
+
+## after doing 3 trees for 70-30 split the best tree with highest accuracy was Gini index
+
+### here we made predictions on the test data
+
+### created the Confusion Matrix
+
+### calculated the Accuracy, Precision, ensitivity (True Positive Rate) , Specificity (True Negative Rate) and printed the results.
+
+### By examining accuracy, precision, sensitivity, and specificity, stakeholders can gain valuable insights into the strengths and weaknesses of the model, aiding in decision-making and potential model refinement.
+
+```{r}
+tree <- rpart(Approved ~ ., data = train_data, method = "class")
+# Make predictions on the test data
+predicted <- predict(tree, test_data, type = "class")
+
+# Calculate confusion matrix
+confusion_matrix <- table(Actual = test_data$Approved, Predicted = predicted)
+
+# Calculate accuracy
+accuracy <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+# Calculate precision
+precision <- confusion_matrix[2, 2] / sum(confusion_matrix[, 2])
+
+# Calculate sensitivity (true positive rate)
+sensitivity <- confusion_matrix[2, 2] / sum(confusion_matrix[2, ])
+
+# Calculate specificity (true negative rate)
+specificity <- confusion_matrix[1, 1] / sum(confusion_matrix[1, ])
+
+# Print the results
+cat("Accuracy:", accuracy, "\n")
+cat("Precision:", precision, "\n")
+cat("Sensitivity:", sensitivity, "\n")
+cat("Specificity:", specificity, "\n")
+
+```
+
+### this time we split the data into training and testing sets using a 80-20 ratio.
+
+### then we created a formula for the decision tree using the specified class attribute. Then, built the decision tree model using the `rpart()` function with the "class" method and information gain as the splitting criterion.
+
+```{r}
+# Load required libraries
+library(readxl)
+library(dplyr)
+library(rpart)
+library(rpart.plot)
+
+# Read the dataset
+CreditCard <- read_excel("C:/Users/Noni/Desktop/Datamining project/Credit Card Approvals/Dataset/CreditCard.xlsx")
+
+# Specify the class attribute
+class_attribute <- "Approved"
+
+# List of character attributes to encode
+char_attributes_to_encode <- c("Industry", "Ethnicity", "Citizen")
+
+# Label Encoding
+for (char_attribute in char_attributes_to_encode) {
+  CreditCard[[char_attribute]] <- as.numeric(factor(CreditCard[[char_attribute]]))
+}
+
+# Split the data into training (80%) and testing (20%)
+set.seed(123)  # Set seed for reproducibility
+sample_index <- sample(1:nrow(CreditCard), 0.8 * nrow(CreditCard))
+train_data <- CreditCard[sample_index, ]
+test_data <- CreditCard[-sample_index, ]
+
+# Create a formula for the decision tree
+formula <- as.formula(paste(class_attribute, " ~ ."))
+
+# Build the decision tree using information gain on the training data
+tree_info_gain <- rpart(formula, data = train_data, method = "class", parms = list(split = "information"))
+
+# Visualize the decision tree
+rpart.plot(tree_info_gain)
+
+# Make predictions on the test data
+predicted_info_gain <- predict(tree_info_gain, test_data, type = "class")
+
+# Calculate accuracy, precision, sensitivity, and specificity
+conf_matrix <- table(predicted_info_gain, test_data$Approved)
+
+# Accuracy
+accuracy <- sum(diag(conf_matrix)) / sum(conf_matrix)
+
+# Precision
+precision <- conf_matrix[2, 2] / sum(conf_matrix[, 2])
+
+# Sensitivity (Recall)
+sensitivity <- conf_matrix[2, 2] / sum(conf_matrix[2, ])
+
+# Specificity
+specificity <- conf_matrix[1, 1] / sum(conf_matrix[1, ])
+
+# Print the results
+cat("Accuracy:", accuracy, "\n")
+cat("Precision:", precision, "\n")
+cat("Sensitivity (Recall):", sensitivity, "\n")
+cat("Specificity:", specificity, "\n")
+
+```
+
+### we again split the data into training and testing sets using a 80-20 ratio.
+
+### then, we Built the decision tree using C5.0 with gain ratio Assuming that "Approved" is a binary variable (0 or 1) and printed it.
+
+```{r}
+# Load required libraries
+library(readxl)
+library(dplyr)
+library(rpart)
+library(rpart.plot)
+
+# Read the dataset
+CreditCard <- read_excel("C:/Users/Noni/Desktop/Datamining project/Credit Card Approvals/Dataset/CreditCard.xlsx")
+
+# Specify the class attribute
+class_attribute <- "Approved"
+
+# List of character attributes to encode
+char_attributes_to_encode <- c("Industry", "Ethnicity", "Citizen")
+
+# Label Encoding
+for (char_attribute in char_attributes_to_encode) {
+  CreditCard[[char_attribute]] <- as.numeric(factor(CreditCard[[char_attribute]]))
+}
+
+# Split the data into training (80%) and testing (20%)
+set.seed(123)  # Set seed for reproducibility
+sample_index <- sample(1:nrow(CreditCard), 0.8 * nrow(CreditCard))
+train_data <- CreditCard[sample_index, ]
+test_data <- CreditCard[-sample_index, ]
+
+# Create a formula for the decision tree
+formula <- as.formula(paste(class_attribute, " ~ ."))
+
+# Build the decision tree using gain ratio on the training data
+tree_gain_ratio <- rpart(formula, data = train_data, method = "class", parms = list(split = "gain"))
+
+# Visualize the decision tree
+rpart.plot(tree_gain_ratio)
+
+# Make predictions on the test data
+predicted_gain_ratio <- predict(tree_gain_ratio, test_data, type = "class")
+
+# Calculate accuracy, precision, sensitivity, and specificity
+conf_matrix <- table(predicted_gain_ratio, test_data$Approved)
+
+# Accuracy
+accuracy <- sum(diag(conf_matrix)) / sum(conf_matrix)
+
+# Precision
+precision <- conf_matrix[2, 2] / sum(conf_matrix[, 2])
+
+# Sensitivity (Recall)
+sensitivity <- conf_matrix[2, 2] / sum(conf_matrix[2, ])
+
+# Specificity
+specificity <- conf_matrix[1, 1] / sum(conf_matrix[1, ])
+
+# Print the results
+cat("Accuracy:", accuracy, "\n")
+cat("Precision:", precision, "\n")
+cat("Sensitivity (Recall):", sensitivity, "\n")
+cat("Specificity:", specificity, "\n")
+
+
+```
+
+### we again split the data using a 80-20 ratio.
+
+### then created a formula for the decision tree using the specified class attribute. Then, built the decision tree model using the `rpart()` function with the "class" method and Gini index as the splitting criterion.
+
+```{r}
+# Load required libraries
+library(readxl)
+library(dplyr)
+library(rpart)
+library(rpart.plot)
+
+# Read the dataset
+CreditCard <- read_excel("C:/Users/Noni/Desktop/Datamining project/Credit Card Approvals/Dataset/CreditCard.xlsx")
+
+# Specify the class attribute
+class_attribute <- "Approved"
+
+# List of character attributes to encode
+char_attributes_to_encode <- c("Industry", "Ethnicity", "Citizen")
+
+# Label Encoding
+for (char_attribute in char_attributes_to_encode) {
+  CreditCard[[char_attribute]] <- as.numeric(factor(CreditCard[[char_attribute]]))
+}
+
+# Split the data into training (80%) and testing (20%)
+set.seed(123)  # Set seed for reproducibility
+sample_index <- sample(1:nrow(CreditCard), 0.8 * nrow(CreditCard))
+train_data <- CreditCard[sample_index, ]
+test_data <- CreditCard[-sample_index, ]
+
+# Create a formula for the decision tree
+formula <- as.formula(paste(class_attribute, " ~ ."))
+
+# Build the decision tree using Gini index on the training data
+tree_gini_index <- rpart(formula, data = train_data, method = "class", control = rpart.control(cp = 0.005))
+
+# Visualize the decision tree
+rpart.plot(tree_gini_index)
+
+# Make predictions on the test data
+predicted <- predict(tree_gini_index, test_data, type = "class")
+
+# Calculate accuracy, precision, sensitivity, and specificity
+conf_matrix <- table(predicted, test_data$Approved)
+
+# Accuracy
+accuracy <- sum(diag(conf_matrix)) / sum(conf_matrix)
+
+# Precision
+precision <- conf_matrix[2, 2] / sum(conf_matrix[, 2])
+
+# Sensitivity (Recall)
+sensitivity <- conf_matrix[2, 2] / sum(conf_matrix[2, ])
+
+# Specificity
+specificity <- conf_matrix[1, 1] / sum(conf_matrix[1, ])
+
+# Print the results
+cat("Accuracy:", accuracy, "\n")
+cat("Precision:", precision, "\n")
+cat("Sensitivity (Recall):", sensitivity, "\n")
+cat("Specificity:", specificity, "\n")
+
+```
+
+## after doing 3 trees for 80-20 split the best tree with highest accuracy was Gain ratio
+
+### we made predictions on the test data
+
+### created the Confusion Matrix
+
+### calculated the Accuracy, Precision, ensitivity (True Positive Rate) , Specificity (True Negative Rate) and printed the results.
+
+```{r}
+tree <- rpart(Approved ~ ., data = train_data, method = "class")
+# Make predictions on the test data
+predicted <- predict(tree, test_data, type = "class")
+
+# Calculate confusion matrix
+confusion_matrix <- table(Actual = test_data$Approved, Predicted = predicted)
+
+# Calculate accuracy
+accuracy <- sum(diag(confusion_matrix)) / sum(confusion_matrix)
+
+# Calculate precision
+precision <- confusion_matrix[2, 2] / sum(confusion_matrix[, 2])
+
+# Calculate sensitivity (true positive rate)
+sensitivity <- confusion_matrix[2, 2] / sum(confusion_matrix[2, ])
+
+# Calculate specificity (true negative rate)
+specificity <- confusion_matrix[1, 1] / sum(confusion_matrix[1, ])
+
+# Print the results
+cat("Accuracy:", accuracy, "\n")
+cat("Precision:", precision, "\n")
+cat("Sensitivity:", sensitivity, "\n")
+cat("Specificity:", specificity, "\n")
+
+```
+
+### and this time we split the data into training and testing sets using a 60-40 ratio.
+
+### then we created a formula for the decision tree using the specified class attribute. Then, built the decision tree model using the `rpart()` function with the "class" method and information gain as the splitting criterion.
+
+```{r}
+# Load required libraries
+library(readxl)
+library(dplyr)
+library(rpart)
+library(rpart.plot)
+
+# Read the dataset
+CreditCard <- read_excel("C:/Users/Noni/Desktop/Datamining project/Credit Card Approvals/Dataset/CreditCard.xlsx")
+
+# Specify the class attribute
+class_attribute <- "Approved"
+
+# List of character attributes to encode
+char_attributes_to_encode <- c("Industry", "Ethnicity", "Citizen")
+
+# Label Encoding
+for (char_attribute in char_attributes_to_encode) {
+  CreditCard[[char_attribute]] <- as.numeric(factor(CreditCard[[char_attribute]]))
+}
+
+# Split the data into training (60%) and testing (40%)
+set.seed(123)  # Set seed for reproducibility
+sample_index <- sample(1:nrow(CreditCard), 0.6 * nrow(CreditCard))
+train_data <- CreditCard[sample_index, ]
+test_data <- CreditCard[-sample_index, ]
+
+# Create a formula for the decision tree
+formula <- as.formula(paste(class_attribute, " ~ ."))
+
+# Build the decision tree using information gain on the training data
+tree_info_gain <- rpart(formula, data = train_data, method = "class", parms = list(split = "information"))
+
+# Visualize the decision tree
+rpart.plot(tree_info_gain)
+
+# Make predictions on the test data
+predicted <- predict(tree_info_gain, test_data, type = "class")
+
+# Calculate accuracy, precision, sensitivity, and specificity
+conf_matrix <- table(predicted, test_data$Approved)
+
+# Accuracy
+accuracy <- sum(diag(conf_matrix)) / sum(conf_matrix)
+
+# Precision
+precision <- conf_matrix[2, 2] / sum(conf_matrix[, 2])
+
+# Sensitivity (Recall)
+sensitivity <- conf_matrix[2, 2] / sum(conf_matrix[2, ])
+
+# Specificity
+specificity <- conf_matrix[1, 1] / sum(conf_matrix[1, ])
+
+# Print the results
+cat("Accuracy:", accuracy, "\n")
+cat("Precision:", precision, "\n")
+cat("Sensitivity (Recall):", sensitivity, "\n")
+cat("Specificity:", specificity, "\n")
+
+```
+
+### we again split the data into training and testing sets using a 60-40 ratio.
+
+### then, we Built the decision tree using C5.0 with gain ratio Assuming that "Approved" is a binary variable (0 or 1) and printed it.
+
+```{r}
+# Load required libraries
+library(readxl)
+library(dplyr)
+library(rpart)
+library(rpart.plot)
+
+# Read the dataset
+CreditCard <- read_excel("C:/Users/Noni/Desktop/Datamining project/Credit Card Approvals/Dataset/CreditCard.xlsx")
+
+# Specify the class attribute
+class_attribute <- "Approved"
+
+# List of character attributes to encode
+char_attributes_to_encode <- c("Industry", "Ethnicity", "Citizen")
+
+# Label Encoding
+for (char_attribute in char_attributes_to_encode) {
+  CreditCard[[char_attribute]] <- as.numeric(factor(CreditCard[[char_attribute]]))
+}
+
+# Split the data into training (60%) and testing (40%)
+set.seed(123)  # Set seed for reproducibility
+sample_index <- sample(1:nrow(CreditCard), 0.6 * nrow(CreditCard))
+train_data <- CreditCard[sample_index, ]
+test_data <- CreditCard[-sample_index, ]
+
+# Create a formula for the decision tree
+formula <- as.formula(paste(class_attribute, " ~ ."))
+
+# Build the decision tree using gain ratio on the training data
+tree_gain_ratio <- rpart(formula, data = train_data, method = "class", parms = list(split = "gain"))
+
+# Visualize the decision tree
+rpart.plot(tree_gain_ratio)
+
+# Make predictions on the test data
+predicted <- predict(tree_gain_ratio, test_data, type = "class")
+
+# Calculate accuracy, precision, sensitivity, and specificity
+conf_matrix <- table(predicted, test_data$Approved)
+
+# Accuracy
+accuracy <- sum(diag(conf_matrix)) / sum(conf_matrix)
+
+# Precision
+precision <- conf_matrix[2, 2] / sum(conf_matrix[, 2])
+
+# Sensitivity (Recall)
+sensitivity <- conf_matrix[2, 2] / sum(conf_matrix[2, ])
+
+# Specificity
+specificity <- conf_matrix[1, 1] / sum(conf_matrix[1, ])
+
+# Print the results
+cat("Accuracy:", accuracy, "\n")
+cat("Precision:", precision, "\n")
+cat("Sensitivity (Recall):", sensitivity, "\n")
+cat("Specificity:", specificity, "\n")
+
+```
+
+### we again again split the data using a 60-40 ratio.
+
+### then created a formula for the decision tree using the specified class attribute. Then, built the decision tree model using the `rpart()` function with the "class" method and Gini index as the splitting criterion.
+
+```{r}
+# Load required libraries
+library(readxl)
+library(dplyr)
+library(rpart)
+library(rpart.plot)
+
+# Read the dataset
+CreditCard <- read_excel("C:/Users/Noni/Desktop/Datamining project/Credit Card Approvals/Dataset/CreditCard.xlsx")
+
+# Specify the class attribute
+class_attribute <- "Approved"
+
+# List of character attributes to encode
+char_attributes_to_encode <- c("Industry", "Ethnicity", "Citizen")
+
+# Label Encoding
+for (char_attribute in char_attributes_to_encode) {
+  CreditCard[[char_attribute]] <- as.numeric(factor(CreditCard[[char_attribute]]))
+}
+
+# Split the data into training (60%) and testing (40%)
+set.seed(123)  # Set seed for reproducibility
+sample_index <- sample(1:nrow(CreditCard), 0.6 * nrow(CreditCard))
+train_data <- CreditCard[sample_index, ]
+test_data <- CreditCard[-sample_index, ]
+
+# Create a formula for the decision tree
+formula <- as.formula(paste(class_attribute, " ~ ."))
+
+# Build the decision tree using Gini index on the training data
+tree_gini_index <- rpart(formula, data = train_data, method = "class", control = rpart.control(cp = 0.005))
+
+# Visualize the decision tree
+rpart.plot(tree_gini_index)
+
+# Make predictions on the test data
+predicted <- predict(tree_gini_index, test_data, type = "class")
+
+# Calculate accuracy, precision, sensitivity, and specificity
+conf_matrix <- table(predicted, test_data$Approved)
+
+# Accuracy
+accuracy <- sum(diag(conf_matrix)) / sum(conf_matrix)
+
+# Precision
+precision <- conf_matrix[2, 2] / sum(conf_matrix[, 2])
+
+# Sensitivity (Recall)
+sensitivity <- conf_matrix[2, 2] / sum(conf_matrix[2, ])
+
+# Specificity
+specificity <- conf_matrix[1, 1] / sum(conf_matrix[1, ])
+
+# Print the results
+cat("Accuracy:", accuracy, "\n")
+cat("Precision:", precision, "\n")
+cat("Sensitivity (Recall):", sensitivity, "\n")
+cat("Specificity:", specificity, "\n")
+
+```
+
+## after doing 3 trees for 60-40 split the best tree with highest accuracy was information gain and Gain ratio
+
+### here we made predictions on the test data
+
+### created the Confusion Matrix
+
+### calculated the Accuracy, Precision, ensitivity (True Positive Rate) , Specificity (True Negative Rate) and printed the results.
+
+## after calculate the accuracy for each split, the highest accuracy was 70-30 split so this is the best split
+
+|             | 70 %t raining set 30% testing set: | 70 %t raining set 30% testing set: | 70 %t raining set 30% testing set: | 80 %t raining set 20% testing set: | 80 %t raining set 20% testing set: | 80 %t raining set 20% testing set: | 60 %t raining set 40% testing set: | 60 %t raining set 40% testing set: | 60 %t raining set 40% testing set: |
+|-|-|-|-|-|-|-|-|-|-|
+|             | IG                                 | IG ratio                           | Gini index                         | IG                                 | IG ratio                           | Gini index                         | IG                                 | IG ratio                           | Gini index                         |
+| Accuracy    | 0.875                              | 0.875                              | 0.889                              | 0.862                              | 0.876                              | 0.862                              | 0.869                              | 0.869                              | 0.858                              |
+| precision   | 0.791                              | 0.791                              | 0.824                              | 0.766                              | 0.8                                | 0.766                              | 0.787                              | 0.787                              | 0.826                              |
+| sensitivity | 0.911                              | 0.911                              | 0.914                              | 0.901                              | 0.905                              | 0.901                              | 0.917                              | 0.917                              | 0.860                              |
+| specificity | 0.852                              | 0.852                              | 0.873                              | 0.839                              | 0.858                              | 0.839                              | 0.838                              | 0.838                              | 0.857                              |
+
+# Clustreing
+
+## determine the appropriate number of clusters
+
+### to determine the appropriate number of clusters for our data, we need to observe the elbow point.
+
+### we Selected the Numeric Attributes for Clustering
+
+### then we specified The range of K values to be tested in the elbow method
+
+### we initialized An empty vector (wcss_values) to store the Within-Cluster Sum of Squares (WCSS) values for each tested K.
+
+### then calculated the WCSS for Each K Value.
+
+### then created a data frame (elbow_data) to store the K values and their corresponding WCSS values.
+
+### finally we Ploted K versus WCSS Using ggplot2
+
+```{r}
+# Load required libraries
+library(readxl)
+library(cluster)
+library(ggplot2)
+
+# Remove the class label 'Approved'
+CreditCard_scaled <- CreditCard_encoded %>%
+  select(-Approved) %>%
+  scale()
+
+
+# Select the numeric attributes for clustering (exclude non-numeric or irrelevant columns)
+numeric_attributes <- CreditCard[, c("Age", "YearsEmployed", "Debt", "CreditScore", "Income")]
+
+# Specify the range of K values you want to test
+k_values <- 1:10  # You can adjust the range
+
+# Initialize a vector to store the WCSS values
+wcss_values <- vector()
+
+# Calculate WCSS for each K value
+for (k in k_values) {
+  kmeans_result <- kmeans(numeric_attributes, centers = k)
+  wcss_values <- c(wcss_values, kmeans_result$tot.withinss)
+}
+
+# Create a data frame to plot K versus WCSS
+elbow_data <- data.frame(K = k_values, WCSS = wcss_values)
+
+# Plot K versus WCSS
+ggplot(elbow_data, aes(x = K, y = WCSS)) +
+  geom_line() +
+  geom_point() +
+  labs(x = "Number of Clusters (K)", y = "Within-Cluster Sum of Squares (WCSS)") +
+  ggtitle("Elbow Method to Choose K")
+
+```
+
+```{r}
+# Load required libraries
+library(dplyr)
+library(factoextra)
+
+
+# Encode categorical variables (Industry, Ethnicity, Citizen)
+CreditCard_encoded <- CreditCard %>%
+  mutate(
+    Industry = as.numeric(factor(Industry)),
+    Ethnicity = as.numeric(factor(Ethnicity)),
+    Citizen = as.numeric(factor(Citizen))
+  )
+
+# Extract the features for clustering (excluding 'Approved' column)
+features <- CreditCard_encoded %>%
+  select(-Approved)
+
+# Scale the features
+scaled_data <- scale(features)
+
+# Perform k-means clustering with k=2
+kmeans_result <- kmeans(scaled_data, centers = 2, nstart = 25)
+
+# Visualize the clusters
+fviz_cluster(kmeans_result, data = scaled_data, geom = "point",
+             stand = FALSE, # Don't standardize the variables
+             main = "K-Means Clustering (k=2)")
+
+
+```
+
+### the following code will calculate the Bcubed precision and recall, witch will assess the quality of our clustering result by comparing it to known ground truth labels.
+
+```{r}
+
+cluster_assignments <- kmeans_result$cluster
+ground_truth_labels <- CreditCard$Approved 
+data <- data.frame(cluster = cluster_assignments, label = ground_truth_labels)
+
+# Function to calculate BCubed precision and recall
+calculate_bcubed_metrics <- function(data) {
+  n <- nrow(data)
+  precision_sum <- 0
+  recall_sum <- 0
+
+  for (i in 1:n) {
+    cluster <- data$cluster[i]
+    label <- data$label[i]
+    
+    # Count the number of items from the same category within the same cluster
+    same_category_same_cluster <- sum(data$label[data$cluster == cluster] == label)
+    
+    # Count the total number of items in the same cluster
+    total_same_cluster <- sum(data$cluster == cluster)
+    
+    # Count the total number of items with the same category
+    total_same_category <- sum(data$label == label)
+    
+    # Calculate precision and recall for the current item and add them to the sums
+    precision_sum <- precision_sum + same_category_same_cluster / total_same_cluster
+    recall_sum <- recall_sum + same_category_same_cluster / total_same_category
+  }
+
+  # Calculate average precision and recall
+  precision <- precision_sum / n
+  recall <- recall_sum / n
+
+  return(list(precision = precision, recall = recall))
+}
+
+# Calculate BCubed precision and recall
+metrics <- calculate_bcubed_metrics(data)
+
+# Extract precision and recall from the metrics
+precision <- metrics$precision
+recall <- metrics$recall
+
+# Print the results
+cat("BCubed Precision:", precision, "\n")
+cat("BCubed Recall:", recall, "\n")
+
+```
+
+### the following code performs k-means clustering on our dataset after encoding and scaling the features. It also calculates the Silhouette Score and the Total Within-Cluster Sum of Squares (WSS) for evaluating the clustering results.
+
+```{r}
+# Load required libraries
+library(cluster)
+library(factoextra)
+library(dplyr)
+
+
+# Encoding and scaling
+CreditCard_encoded <- CreditCard %>%
+  mutate(
+    Industry = as.numeric(factor(Industry)),
+    Ethnicity = as.numeric(factor(Ethnicity)),
+    Citizen = as.numeric(factor(Citizen))
+  )
+
+# Remove the class label 'Approved'
+CreditCard_scaled <- CreditCard_encoded %>%
+  select(-Approved) %>%
+  scale()
+
+# Specify the number of clusters (k)
+k <- 2
+
+# Perform k-means clustering with k clusters
+kmeans_result <- kmeans(CreditCard_scaled, centers = k, nstart = 25)
+
+# Silhouette Score
+silhouette_score <- silhouette(kmeans_result$cluster, dist(CreditCard_scaled))
+cat("Silhouette Score for k =", k, ":", mean(silhouette_score[, "sil_width"]), "\n")
+
+# Total Within-Cluster Sum of Squares (WSS)
+wss <- kmeans_result$tot.withinss
+cat("Total Within-Cluster Sum of Squares (WSS) for k =", k, ":", wss, "\n")
+
+
+```
+
+### the following code performs k-means clustering our dataset with a specified number of clusters (k = 2). It then calculates silhouette information, including the average silhouette width for each cluster, and visualizes the silhouette plot using the factoextra library.
+
+```{r}
+# Load required libraries
+library(cluster)
+library(factoextra)
+library(dplyr)
+library(fpc)  # Add this line to load the fpc package
+
+# Assume 'CreditCard' is your dataset
+
+# Encoding and scaling
+CreditCard_encoded <- CreditCard %>%
+  mutate(
+    Industry = as.numeric(factor(Industry)),
+    Ethnicity = as.numeric(factor(Ethnicity)),
+    Citizen = as.numeric(factor(Citizen))
+  )
+
+# Remove the class label 'Approved'
+CreditCard_scaled <- CreditCard_encoded %>%
+  select(-Approved) %>%
+  scale()
+
+# Specify the number of clusters (k)
+k <- 2
+
+# Perform k-means clustering with k clusters
+kmeans_result <- kmeans(CreditCard_scaled, centers = k, nstart = 25)
+
+# Calculate silhouette information
+sil_info <- silhouette(kmeans_result$cluster, dist(CreditCard_scaled))
+
+# Calculate average silhouette width for each cluster
+avg_sil_width <- cluster.stats(dist(CreditCard_scaled), kmeans_result$cluster)$avg.silwidth
+
+# Visualize silhouette plot
+fviz_silhouette(sil_info)
+
+
+
+```
+
+### the following code performs k-means clustering on our dataset with a specified number of clusters (k = 3). It then visualizes the clusters using the factoextra library.
+
+```{r}
+# Load required libraries
+library(dplyr)
+library(factoextra)
+
+
+
+# Encode categorical variables (Industry, Ethnicity, Citizen)
+CreditCard_encoded <- CreditCard %>%
+  mutate(
+    Industry = as.numeric(factor(Industry)),
+    Ethnicity = as.numeric(factor(Ethnicity)),
+    Citizen = as.numeric(factor(Citizen))
+  )
+
+# Extract the features for clustering (excluding 'Approved' column)
+features <- CreditCard_encoded %>%
+  select(-Approved)
+
+# Scale the features
+scaled_data <- scale(features)
+
+# Perform k-means clustering with k=3
+kmeans_result <- kmeans(scaled_data, centers = 3, nstart = 25)
+
+# Visualize the clusters
+fviz_cluster(kmeans_result, data = scaled_data, geom = "point",
+             stand = FALSE, # Don't standardize the variables
+             main = "K-Means Clustering (k=3)")
+
+```
+
+### the following code performs k-means clustering on our dataset with a specified number of clusters (k = 3). It then calculates the Silhouette Score and the Total Within-Cluster Sum of Squares (WSS) for evaluating the clustering results.
+
+```{r}
+ cluster_assignments <- kmeans_result$cluster
+ground_truth_labels <- CreditCard$Approved 
+data <- data.frame(cluster = cluster_assignments, label = ground_truth_labels)
+
+# Function to calculate BCubed precision and recall
+calculate_bcubed_metrics <- function(data) {
+  n <- nrow(data)
+  precision_sum <- 0
+  recall_sum <- 0
+
+  for (i in 1:n) {
+    cluster <- data$cluster[i]
+    label <- data$label[i]
+    
+    # Count the number of items from the same category within the same cluster
+    same_category_same_cluster <- sum(data$label[data$cluster == cluster] == label)
+    
+    # Count the total number of items in the same cluster
+    total_same_cluster <- sum(data$cluster == cluster)
+    
+    # Count the total number of items with the same category
+    total_same_category <- sum(data$label == label)
+    
+    # Calculate precision and recall for the current item and add them to the sums
+    precision_sum <- precision_sum + same_category_same_cluster / total_same_cluster
+    recall_sum <- recall_sum + same_category_same_cluster / total_same_category
+  }
+
+  # Calculate average precision and recall
+  precision <- precision_sum / n
+  recall <- recall_sum / n
+
+  return(list(precision = precision, recall = recall))
+}
+
+# Calculate BCubed precision and recall
+metrics <- calculate_bcubed_metrics(data)
+
+# Extract precision and recall from the metrics
+precision <- metrics$precision
+recall <- metrics$recall
+
+# Print the results
+cat("BCubed Precision:", precision, "\n")
+cat("BCubed Recall:", recall, "\n")
+
+```
+
+### the following code performs k-means clustering on our dataset with a specified number of clusters (k = 3). It then calculates silhouette information, including the average silhouette width for each cluster, and visualizes the silhouette plot using the factoextra library.
+
+```{r}
+# Load required libraries
+library(cluster)
+library(factoextra)
+library(dplyr)
+
+# Encoding and scaling
+CreditCard_encoded <- CreditCard %>%
+  mutate(
+    Industry = as.numeric(factor(Industry)),
+    Ethnicity = as.numeric(factor(Ethnicity)),
+    Citizen = as.numeric(factor(Citizen))
+  )
+
+# Remove the class label 'Approved'
+CreditCard_scaled <- CreditCard_encoded %>%
+  select(-Approved) %>%
+  scale()
+
+# Specify the number of clusters (k)
+k <- 3
+
+# Perform k-means clustering with k clusters
+kmeans_result <- kmeans(CreditCard_scaled, centers = k, nstart = 25)
+
+# Silhouette Score
+silhouette_score <- silhouette(kmeans_result$cluster, dist(CreditCard_scaled))
+cat("Silhouette Score for k =", k, ":", mean(silhouette_score[, "sil_width"]), "\n")
+
+# Total Within-Cluster Sum of Squares (WSS)
+wss <- kmeans_result$tot.withinss
+cat("Total Within-Cluster Sum of Squares (WSS) for k =", k, ":", wss, "\n")
+
+
+
+```
+
+### the following code performs k-means clustering on our dataset with a specified number of clusters (k = 3). It then calculates silhouette information, including the average silhouette width for each cluster, and visualizes the silhouette plot using the factoextra library.
+
+```{r}
+# Load required libraries
+library(cluster)
+library(factoextra)
+library(dplyr)
+
+
+# Encoding and scaling
+CreditCard_encoded <- CreditCard %>%
+  mutate(
+    Industry = as.numeric(factor(Industry)),
+    Ethnicity = as.numeric(factor(Ethnicity)),
+    Citizen = as.numeric(factor(Citizen))
+  )
+
+# Remove the class label 'Approved'
+CreditCard_scaled <- CreditCard_encoded %>%
+  select(-Approved) %>%
+  scale()
+
+# Specify the number of clusters (k)
+k <- 3
+
+# Perform k-means clustering with k clusters
+kmeans_result <- kmeans(CreditCard_scaled, centers = k, nstart = 25)
+
+# Calculate silhouette information
+sil_info <- silhouette(kmeans_result$cluster, dist(CreditCard_scaled))
+
+# Calculate average silhouette width for each cluster
+avg_sil_width <- cluster.stats(dist(CreditCard_scaled), kmeans_result$cluster)$avg.silwidth
+
+# Visualize silhouette plot
+fviz_silhouette(sil_info)
+
+
+```
+
+### code performs k-means clustering on our dataset with a specified number of clusters (k = 4). It then visualizes the clusters using the factoextra library
+
+```{r}
+# Load required libraries
+library(dplyr)
+library(factoextra)
+
+
+# Encode categorical variables (Industry, Ethnicity, Citizen)
+CreditCard_encoded <- CreditCard %>%
+  mutate(
+    Industry = as.numeric(factor(Industry)),
+    Ethnicity = as.numeric(factor(Ethnicity)),
+    Citizen = as.numeric(factor(Citizen))
+  )
+
+# Extract the features for clustering (excluding 'Approved' column)
+features <- CreditCard_encoded %>%
+  select(-Approved)
+
+# Scale the features
+scaled_data <- scale(features)
+
+# Perform k-means clustering with k=2
+kmeans_result <- kmeans(scaled_data, centers = 4, nstart = 25)
+
+# Visualize the clusters
+fviz_cluster(kmeans_result, data = scaled_data, geom = "point",
+             stand = FALSE, # Don't standardize the variables
+             main = "K-Means Clustering (k=4)")
+
+```
+
+## the following code calculates BCubed precision and recall for evaluating the quality of our clustering result compared to ground truth labels.
+
+```{r}
+cluster_assignments <- kmeans_result$cluster
+ground_truth_labels <- CreditCard$Approved 
+data <- data.frame(cluster = cluster_assignments, label = ground_truth_labels)
+
+# Function to calculate BCubed precision and recall
+calculate_bcubed_metrics <- function(data) {
+  n <- nrow(data)
+  precision_sum <- 0
+  recall_sum <- 0
+
+  for (i in 1:n) {
+    cluster <- data$cluster[i]
+    label <- data$label[i]
+    
+    # Count the number of items from the same category within the same cluster
+    same_category_same_cluster <- sum(data$label[data$cluster == cluster] == label)
+    
+    # Count the total number of items in the same cluster
+    total_same_cluster <- sum(data$cluster == cluster)
+    
+    # Count the total number of items with the same category
+    total_same_category <- sum(data$label == label)
+    
+    # Calculate precision and recall for the current item and add them to the sums
+    precision_sum <- precision_sum + same_category_same_cluster / total_same_cluster
+    recall_sum <- recall_sum + same_category_same_cluster / total_same_category
+  }
+
+  # Calculate average precision and recall
+  precision <- precision_sum / n
+  recall <- recall_sum / n
+
+  return(list(precision = precision, recall = recall))
+}
+
+# Calculate BCubed precision and recall
+metrics <- calculate_bcubed_metrics(data)
+
+# Extract precision and recall from the metrics
+precision <- metrics$precision
+recall <- metrics$recall
+
+# Print the results
+cat("BCubed Precision:", precision, "\n")
+cat("BCubed Recall:", recall, "\n")
+```
+
+### the following performs k-means clustering on our dataset with a specified number of clusters (k = 4). It then calculates the Silhouette Score and the Total Within-Cluster Sum of Squares (WSS) for evaluating the clustering results
+
+```{r}
+# Load required libraries
+library(cluster)
+library(factoextra)
+library(dplyr)
+
+
+# Encoding and scaling
+CreditCard_encoded <- CreditCard %>%
+  mutate(
+    Industry = as.numeric(factor(Industry)),
+    Ethnicity = as.numeric(factor(Ethnicity)),
+    Citizen = as.numeric(factor(Citizen))
+  )
+
+# Remove the class label 'Approved'
+CreditCard_scaled <- CreditCard_encoded %>%
+  select(-Approved) %>%
+  scale()
+
+# Specify the number of clusters (k)
+k <- 4
+
+# Perform k-means clustering with k clusters
+kmeans_result <- kmeans(CreditCard_scaled, centers = k, nstart = 25)
+
+# Silhouette Score
+silhouette_score <- silhouette(kmeans_result$cluster, dist(CreditCard_scaled))
+cat("Silhouette Score for k =", k, ":", mean(silhouette_score[, "sil_width"]), "\n")
+
+
+# Total Within-Cluster Sum of Squares (WSS)
+wss <- kmeans_result$tot.withinss
+cat("Total Within-Cluster Sum of Squares (WSS) for k =", k, ":", wss, "\n")
+
+
+```
+
+### the following code performs k-means clustering on our dataset with a specified number of clusters (k = 4). It then calculates the average silhouette width for each cluster and visualizes the silhouette plot using the factoextra library.
+
+```{r}
+# Load required libraries
+library(cluster)
+library(factoextra)
+library(dplyr)
+
+
+# Encoding and scaling
+CreditCard_encoded <- CreditCard %>%
+  mutate(
+    Industry = as.numeric(factor(Industry)),
+    Ethnicity = as.numeric(factor(Ethnicity)),
+    Citizen = as.numeric(factor(Citizen))
+  )
+
+# Remove the class label 'Approved'
+CreditCard_scaled <- CreditCard_encoded %>%
+  select(-Approved) %>%
+  scale()
+
+# Specify the number of clusters (k)
+k <- 4
+
+# Perform k-means clustering with k clusters
+kmeans_result <- kmeans(CreditCard_scaled, centers = k, nstart = 25)
+
+
+# Calculate average silhouette width for each cluster
+avg_sil_width <- cluster.stats(dist(CreditCard_scaled), kmeans_result$cluster)$avg.silwidth
+
+# Visualize silhouette plot
+fviz_silhouette(sil_info)
+
+
+
+```
+
+### the following code performs the silhouette method to determine the optimal number of clusters for k-means clustering. It uses a range of cluster numbers (k_range) and calculates the average silhouette width for each.
+
+```{r}
+# Load required libraries
+library(cluster)
+library(factoextra)
+library(dplyr)
+
+# Encoding and scaling
+CreditCard_encoded <- CreditCard %>%
+  mutate(
+    Industry = as.numeric(factor(Industry)),
+    Ethnicity = as.numeric(factor(Ethnicity)),
+    Citizen = as.numeric(factor(Citizen))
+  )
+
+# Remove the class label 'Approved'
+CreditCard_scaled <- CreditCard_encoded %>%
+  select(-Approved) %>%
+  scale()
+
+# Specify the range of clusters you want to explore
+k_range <- 2:10
+
+# Function to calculate average silhouette width for a given number of clusters (k)
+calculate_silhouette <- function(k) {
+  kmeans_result <- kmeans(CreditCard_scaled, centers = k, nstart = 25)
+  silhouette_score <- silhouette(kmeans_result$cluster, dist(CreditCard_scaled))
+  return(mean(silhouette_score[, "sil_width"]))
+}
+
+# Calculate silhouette width for each k and store in a vector
+sil_widths <- sapply(k_range, calculate_silhouette)
+
+# Find the optimal number of clusters based on the maximum silhouette width
+optimal_k_sil <- k_range[which.max(sil_widths)]
+
+# Compare results
+cat("Optimal number of clusters (silhouette method):", optimal_k_sil, "\n")
+
+# Plot silhouette width
+plot(k_range, sil_widths, type = "b", pch = 19, frame = FALSE, 
+     xlab = "Number of Clusters (k)", ylab = "Average Silhouette Width",
+     main = "Silhouette Method for Optimal Number of Clusters")
+
+# Add a point for the optimal k
+points(optimal_k_sil, sil_widths[optimal_k_sil - min(k_range) + 1], col = "red", cex = 2, pch = 19)
+
+
+```
+
+## after calculate the average silhouette width the best cluster was k=2
+
+|                                             | k=2               | k=3               | k=4               |
+|---------------------------------------------|-------------------|-------------------|-------------------|
+| Average Silhouette width                    | 0.1765312         | 0.1694531         | 0.1667461         |
+| total within-cluster sum of square          | 8900.655          | 7844.349          | 7330.214          |
+| BCubed precision                            | 0.5237031         | 0.6826586         | 0.6826631         |
+| BCubed recall                               | 0.6520374         | 0.799486          | 0.4137098         |
+| visualization and optimal number of cluster | in the code above | in the code above | in the code above |
+
+
+# 7-Findings
+ 
+
+We started by selecting a dataset that shows the approvals of credit cards. And the goal of collecting this dataset is to predict which people are successful in applying for a credit card. 
+
+ 
+
+ 
+
+Credit card approval analysis goes beyond transactional analysis; it uses classification algorithms to advance financial inclusion by pointing out relevant variables and customizing services for a range of users. These algorithms also improve risk management by anticipating problems and taking proactive measures to rectify them.  
+
+   
+
+The research protects consumer rights by examining procedures for bias and ensuring openness and justice. Using clustering techniques aids in strategic planning and development by offering insights into consumer spending patterns and economic growth. Data-driven choices that are informed by societal demands and economic objectives show adaptability in the ever-changing financial environment. This all-encompassing strategy highlights a dedication to utilizing innovative analytics for beneficial social effects and a more secure, inclusive financial future. 
+
+ 
+
+Discuss data mining results and decide whether these results are interested or not.  
+
+ 
+
+To help us to rebuild our dataset to be clearer to represent and understand We applied data mining classification and clustering 
+
+ 
+
+ 
+
+For classification We have constructed multiple decision trees for different measures (Gini index, Information gain, Information gain ratio) and we will discuss each measure results using 3 different measures (accuracy, precession, sensitivity) in the next section. 
+
+ 
+
+ 
+
+For the 70% 30% model 
+
+ 
+
+first, the Gini index measurement results were: 
+
+accuracy = 88.9% 
+
+ precision= 82.4% 
+
+ sensitivity= 91.4% 
+
+ 
+
+ 
+
+second, the information gain ratio measurement results were: 
+
+accuracy = 87.5% 
+
+ precision= 79.1% 
+
+ sensitivity= 91.1% 
+
+ 
+
+ 
+
+ 
+
+third, the information gain measurement results were: 
+
+accuracy = 87.5% 
+
+ precision= 79.1% 
+
+ sensitivity= 91.1% 
+
+ 
+
+ 
+
+We found that the best measure for this model was the first one which uses Gini index measure because it has the highest accuracy. 
+
+ 
+
+ 
+
+------------------------------------------------------------ 
+
+For the 80% 20% model 
+
+ 
+
+first, the Gini index measurement results were: 
+
+accuracy = 86.2% 
+
+ precision= 76.6% 
+
+ sensitivity= 90.1% 
+
+ 
+
+ 
+
+second, the information gain ratio measurement results were: 
+
+accuracy = 87.6% 
+
+ precision= 80% 
+
+ sensitivity= 90.5% 
+
+ 
+
+ 
+
+third, the information gain measurement results were: 
+
+accuracy = 86.2% 
+
+ precision= 76.6% 
+
+ sensitivity= 90.1% 
+
+ 
+
+ because it has the highest accuracy 
+
+ 
+
+We found that the best measure for this model was the first one which uses information gain ratio measure because it has the highest accuracy. 
+
+ 
+
+ 
+
+--------------------------------------------------------------- 
+
+ 
+
+For the 60% 40% model 
+
+ 
+
+first, the Gini index measurement results were: 
+
+accuracy = 85.8% 
+
+ precision= 82.6% 
+
+ sensitivity= 86% 
+
+ 
+
+ 
+
+second, the information gain ratio measurement results were: 
+
+accuracy = 86.9% 
+
+ precision= 78.7% 
+
+ sensitivity= 91.7% 
+
+ 
+
+ 
+
+ 
+
+third, the information gain measurement results were: 
+
+accuracy = 86.9% 
+
+ precision= 78.7% 
+
+ sensitivity= 91.7% 
+
+ 
+
+ 
+
+We found that the best measure for this model was the last one which uses information gain measure. Since our data is high cardinality, we found that it is better than information gain ratio. 
+
+ 
+
+------------------------------------------- 
+
+ 
+
+After finding the best measure for each model we concluded the following results: 
+
+70% Training data, 30% Test data, accuracy = 88.9% 
+
+80% Training data, 20% Test data, accuracy = 87.6% 
+
+60% Training data, 40% Test data, accuracy = 86.9% 
+
+ 
+
+ 
+
+ 
+
+The model that has the best accuracy was the first model with 70% training data and 30% test data. 
+```{r}
+# Load required libraries
+library(readxl)
+library(dplyr)
+library(rpart)
+library(rpart.plot)
+
+# Read the dataset
+CreditCard <- read_excel("C:/Users/Noni/Desktop/Datamining project/Credit Card Approvals/Dataset/CreditCard.xlsx")
+
+# Specify the class attribute
+class_attribute <- "Approved"
+
+# List of character attributes to encode
+char_attributes_to_encode <- c("Industry", "Ethnicity", "Citizen")
+
+# Label Encoding
+for (char_attribute in char_attributes_to_encode) {
+  CreditCard[[char_attribute]] <- as.numeric(factor(CreditCard[[char_attribute]]))
+}
+
+# Split the data into training (70%) and testing (30%)
+set.seed(123)  # Set seed for reproducibility
+sample_index <- sample(1:nrow(CreditCard), 0.7 * nrow(CreditCard))
+train_data <- CreditCard[sample_index, ]
+test_data <- CreditCard[-sample_index, ]
+
+# Create a formula for the decision tree
+formula <- as.formula(paste(class_attribute, " ~ ."))
+
+# Build the decision tree using information gain on the training data
+tree_info_gain <- rpart(formula, data = train_data, method = "class", parms = list(split = "information"))
+
+# Visualize the decision tree
+rpart.plot(tree_info_gain)
+
+# Build the decision tree using information gain on the training data
+tree_info_gain <- rpart(formula, data = train_data, method = "class", parms = list(split = "information"))
+
+# Make predictions on the test data
+predicted_info_gain <- predict(tree_info_gain, test_data, type = "class")
+
+# Calculate accuracy, precision, sensitivity, and specificity
+conf_matrix <- table(predicted_info_gain , test_data$Approved)
+
+# Accuracy
+accuracy <- sum(diag(conf_matrix)) / sum(conf_matrix)
+
+# Precision
+precision <- conf_matrix[2, 2] / sum(conf_matrix[, 2])
+
+# Sensitivity (Recall)
+sensitivity <- conf_matrix[2, 2] / sum(conf_matrix[2, ])
+
+# Specificity
+specificity <- conf_matrix[1, 1] / sum(conf_matrix[1, ])
+
+# Print the results
+cat("Accuracy:", accuracy, "\n")
+cat("Precision:", precision, "\n")
+cat("Sensitivity (Recall):", sensitivity, "\n")
+cat("Specificity:", specificity, "\n")
+
+```
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+from the decision tree, we concluded the following results: 
+
+ 
+
+The root of the tree is (priorDefault) attribute which has the maximum information gain that split the data into a binary sub tree the first node for tuples has priorDefault=0 and the second one priorDefault !=0 
+
+ 
+
+ From the second node, needs further portioning and was partitioned based on the income attribute which has the maximum information gain for the subtree resulted from the root node with priorDefault !=0. 
+
+ 
+
+This partition resulted another binary subtree where the first node for tuples has income> 386 and the second one Income< 368. 
+
+ 
+
+From the second node, needs further portioning and was partitioned based on the Zipcode attribute which has the maximum information gain for the subtree resulted from the previous node with Income<368. 
+
+ 
+
+This partition resulted another binary subtree where the first node for tuples has zipCode>= 94 and the second one zipCode< 94. 
+
+ 
+
+From the second node, needs further portioning and was partitioned based on the CreditScore attribute which has the maximum information gain for the subtree resulted from the previous node with zipCode>= 94 
+
+ 
+
+This partition resulted another binary subtree where the first node for tuples has CreditScore >4 and the second one CreditScore < 4. 
+
+ 
+
+From the second node, needs further portioning and was partitioned based on the Income attribute which has the maximum information gain for the subtree resulted from the previous node with CreditScore < 4. 
+ 
+
+This partition resulted another binary subtree where the first node for tuples has Income>140 and the second one Income < 149. 
+
+ 
+
+From the second node, needs further portioning and was partitioned based on the dept attribute which has the maximum information gain for the subtree resulted from the previous node with Income < 149. 
+
+ 
+ 
+
+This partition resulted another binary subtree where the first node for tuples has dept>1.7and the second one dept< 1.7. 
+
+ 
+
+From the first node, needs further portioning and was partitioned based on the industry attribute which has the maximum information gain for the subtree resulted from the previous node with dept>1.7 
+
+ 
+
+This partition resulted another binary subtree where the first node for tuples has industry>9 and the second one industry < 9. 
+
+ 
+
+From the root node, we can conclude that the number of tuples with class label "yes" and the number of tuples with class label "no" are close to each other. 
+
+ 
+
+For the second node after the root node, we can observe the number of tuples that has classified as "Yes" were significantly higher than the number of tuples that has been classified as "No"  
+
+ 
+
+ 
+
+Also, the tree illustrates those other attributes (age, gender, married, bankCustomer, ethnicity, yearsEmployed, Employed, DriverLicence, Approved, and Citizen) have no effect in predicting the class label. 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+ 
+
+For Clustering, we used K-means algorithm with 3 different K to find the optimal number of clusters, we calculated the average silhouette width for each K, the total within-cluster sum of square, BCubed precision and the BCubed recall, and we concluded the following results: 
+
+ 
+
+For Number of cluster(K)= 2: 
+
+ 
+
+the average silhouette width=0.18 
+
+the total within-cluster sum of square=8900.65 
+
+BCubed precision= 0.52 
+
+BCubed recall= 0.65 
+
+ 
+
+Explanation for (K)=2: 
+
+The silhouette width of 0.18 suggests moderate clustering with reasonably separated clusters but some potential overlap or ambiguity. 
+
+The total within-cluster sum of squares is 8900.65, reflecting the dispersion of points within the clusters. 
+
+BCubed precision at 0.52 indicates moderate agreement between clustering assignments and true labels, while the recall of 0.65 suggests a reasonably good representation of items with the same true label within the same cluster. 
+
+ 
+
+ 
+
+------------------------------------------------------- 
+
+For Number of cluster(K)= 3: 
+
+ 
+
+the average silhouette width=0.16 
+
+the total within-cluster sum of square=7844.34 
+
+BCubed precision= 0.68 
+
+BCubed recall= 0.79 
+
+ 
+
+Explanation for (K)=3: 
+
+ 
+
+The silhouette width at 0.16 suggests moderate clustering with some overlapping or ambiguous data points. 
+
+The total within-cluster sum of squares is 7844.34, indicating the overall dispersion of points within the clusters. 
+
+BCubed precision of 0.68 indicates a moderate agreement between cluster assignments and true labels, while the recall of 0.79 suggests a better representation of items with the same true label within the same cluster. 
+
+
+
+------------------------------------------------------------------- 
+
+ 
+
+For Number of cluster(K)= 4: 
+
+ 
+
+the average silhouette width=0.16 
+
+the total within-cluster sum of square=7330.21 
+
+BCubed precision= 0.68 
+
+BCubed recall= 0.41 
+
+ 
+
+Explanation for (K)=4: 
+
+The silhouette width indicates moderate clustering with some overlapping or misclassified points. 
+
+The total within-cluster sum of squares is 7330.21, suggesting some compactness within clusters. 
+
+BCubed precision at 0.68 indicates that a good portion of items in the same cluster share the same true label, while the recall at 0.41 suggests that a moderate percentage of items with the same true label are placed in the same cluster. 
+
+ 
+
+ 
+
+----------------------------------------------------------------- 
+
+To summarize: 
+
+Number of cluster(K)= 2, the average silhouette width=0.18 
+
+Number of cluster(K)= 3, the average silhouette width=0.17 
+
+Number of cluster(K)= 4, the average silhouette width=0.17 
+
+
+The model that has the optimal number of clusters is 2-Mean since it has the best average silhouette width which means that objects within the same cluster are close to each other and as far as possible to the objects in the other cluster. 
+
+```{r}
+# Encode categorical variables (Industry, Ethnicity, Citizen)
+CreditCard_encoded <- CreditCard %>%
+  mutate(
+    Industry = as.numeric(factor(Industry)),
+    Ethnicity = as.numeric(factor(Ethnicity)),
+    Citizen = as.numeric(factor(Citizen))
+  )
+
+# Extract the features for clustering (excluding 'Approved' column)
+features <- CreditCard_encoded %>%
+  select(-Approved)
+
+# Scale the features
+scaled_data <- scale(features)
+
+# Perform k-means clustering with k=2
+kmeans_result <- kmeans(scaled_data, centers = 2, nstart = 25)
+
+# Visualize the clusters
+fviz_cluster(kmeans_result, data = scaled_data, geom = "point",
+             stand = FALSE, # Don't standardize the variables
+             main = "K-Means Clustering (k=2)")
+```
+ 
+
+
+Cluster (1): silhouette width=0.15, 527 object. 
+
+Cluster (2): silhouette width=0.27, 163 object. 
+
+
+```{r}
+# Plot silhouette width
+plot(k_range, sil_widths, type = "b", pch = 19, frame = FALSE, 
+     xlab = "Number of Clusters (k)", ylab = "Average Silhouette Width",
+     main = "Silhouette Method for Optimal Number of Clusters")
+
+# Add a point for the optimal k
+points(optimal_k_sil, sil_widths[optimal_k_sil - min(k_range) + 1], col = "red", cex = 2, pch = 19)
+```
+ 
+
+Finally, both models are helpful for predicting which people in the dataset are successful in applying for a credit card. 
+
+But since our data contains a class label “Approved” This makes Supervised Learning models(classification) more precise and appropriate for use than unsupervised learning models (clustering), because the predicted result is known in advance. We employ the class label attribute (Approved) in this way because it can be used to leverage labeled data, make predictions, and produce findings that are easy to understand—all of which are critical in sensitive fields like finance and banking.
+
+
+# 8-References
+[1]“How to Normalize Data in R,” GeeksforGeeks, Aug. 01, 2023. https://www.geeksforgeeks.org/how-to-normalize-data-in-r/[1]“Credit Card Approvals (Clean Data),” Kaggle, Apr. 25, 2022. https://www.kaggle.com/datasets/samuelcortinhas/credit-card-approval-clean-data[1]K. Wood, “Tutorial R Notebook.” https://rstudio-pubs-static.s3.amazonaws.com/256225_63ebef4029dd40ef8e3679f6cf200a5a.html[1]“RPubs - Data Mining: Classification with Decision Trees.” https://rpubs.com/kjmazidi/195428[1]“RPubs - Classification and Regression Trees (CART) in R.” https://rpubs.com/camguild/803096
